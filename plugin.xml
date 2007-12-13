@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<plugin name="jameica.messaging" version="1.0" class="de.willuhn.jameica.messaging.Plugin">
+
+  <description>Stellt eine Message-Queue zur Verfügung, die via RMI, XML-RPC oder auch direkt via TCP erreichbar ist</description>
+  <url></url>
+  <homepage>http://www.willuhn.de/projects/jameica</homepage>
+  <license>GPL - http://www.gnu.org/copyleft/gpl.html</license>
+
+  <classfinder>
+    <include>jameica\.messaging\.jar</include>
+    <include>.*\.class</include>
+  </classfinder>
+
+  <services>
+    <service name="tcpconnector"     depends="queue" autostart="true" class="de.willuhn.jameica.messaging.rmi.TcpService" />
+    <service name="queue"            depends=""      autostart="true" class="de.willuhn.jameica.messaging.rmi.QueueService" />
+  </services>
+</plugin>
+
