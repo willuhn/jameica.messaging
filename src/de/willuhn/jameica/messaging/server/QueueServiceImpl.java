@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/QueueServiceImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2007/12/14 11:28:08 $
+ * $Revision: 1.4 $
+ * $Date: 2007/12/14 12:04:08 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -16,6 +16,8 @@ package de.willuhn.jameica.messaging.server;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -113,15 +115,11 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
    */
   public synchronized byte[] get(String channel) throws RemoteException
   {
-    String logPrefix = "[channel: " + channel + "] ";
-
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
     try
     {
-      this.storage.get(channel,bos);
-      byte[] data = bos.toByteArray();
-      Logger.info(logPrefix + " message sent (" + data.length + " bytes)");
-      return data;
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      get(channel,bos);
+      return bos.toByteArray();
     }
     catch (IOException e)
     {
@@ -134,18 +132,46 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
    */
   public synchronized boolean put(String channel, byte[] data) throws RemoteException
   {
-    String logPrefix = "[channel: " + channel + "] ";
     if (data == null || data.length == 0)
     {
-      Logger.info(logPrefix + " got empty message, ignoring");
+      Logger.info("[channel: " + channel + "] got empty message, ignoring");
       return false;
     }
     
     try
     {
-      this.storage.put(channel,new ByteArrayInputStream(data));
-      Logger.info(logPrefix + " message received (" + data.length + " bytes)");
+      put(channel,new ByteArrayInputStream(data));
       return true;
+    }
+    catch (IOException e)
+    {
+      throw new RemoteException("unable to queue message",e);
+    }
+  }
+
+  /**
+   * @see de.willuhn.jameica.messaging.rmi.QueueService#get(java.lang.String, java.io.OutputStream)
+   */
+  public void get(String channel, OutputStream os) throws RemoteException
+  {
+    try
+    {
+      this.storage.get(channel,os);
+    }
+    catch (IOException e)
+    {
+      throw new RemoteException("unable to queue message",e);
+    }
+  }
+
+  /**
+   * @see de.willuhn.jameica.messaging.rmi.QueueService#put(java.lang.String, java.io.InputStream)
+   */
+  public void put(String channel, InputStream is) throws RemoteException
+  {
+    try
+    {
+      this.storage.put(channel,is);
     }
     catch (IOException e)
     {
@@ -157,6 +183,9 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
 
 /*********************************************************************
  * $Log: QueueServiceImpl.java,v $
+ * Revision 1.4  2007/12/14 12:04:08  willuhn
+ * @C TCP-Listener verwendet jetzt Stream-API
+ *
  * Revision 1.3  2007/12/14 11:28:08  willuhn
  * @N Storage-Engine
  *

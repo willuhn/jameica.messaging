@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2007/12/14 11:28:08 $
+ * $Revision: 1.2 $
+ * $Date: 2007/12/14 12:04:08 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -65,17 +65,21 @@ public class StorageEngineFileImpl implements StorageEngine
     {
       Logger.debug(logPrefix + "reading message file " + target.getAbsolutePath());
       is = new BufferedInputStream(new FileInputStream(target));
+      long started = System.currentTimeMillis();
 
       byte[] buf = new byte[4096];
-      int read = 0;
+      long count = 0;
+      int read   = 0;
       do
       {
         read = is.read(buf);
         if (read > 0)
           os.write(buf,0,read);
+        count += read;
       }
       while (read != -1);
       os.flush();
+      Logger.info("[channel: " + channel + "] message sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
     }
     finally
     {
@@ -112,17 +116,21 @@ public class StorageEngineFileImpl implements StorageEngine
       File target = prepare(channel,false);
       Logger.debug(logPrefix + "writing message file " + target.getAbsolutePath());
       os = new BufferedOutputStream(new FileOutputStream(target));
+      long started = System.currentTimeMillis();
 
       byte[] buf = new byte[4096];
-      int read = 0;
+      long count = 0;
+      int read   = 0;
       do
       {
         read = is.read(buf);
         if (read > 0)
           os.write(buf,0,read);
+        count += read;
       }
       while (read != -1);
       os.flush();
+      Logger.info("[channel: " + channel + "] message received (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
     }
     catch (IOException e)
     {
@@ -276,6 +284,9 @@ public class StorageEngineFileImpl implements StorageEngine
 
 /*********************************************************************
  * $Log: StorageEngineFileImpl.java,v $
+ * Revision 1.2  2007/12/14 12:04:08  willuhn
+ * @C TCP-Listener verwendet jetzt Stream-API
+ *
  * Revision 1.1  2007/12/14 11:28:08  willuhn
  * @N Storage-Engine
  *

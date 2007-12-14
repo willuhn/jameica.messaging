@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.4 $
- * $Date: 2007/12/14 09:56:59 $
+ * $Revision: 1.5 $
+ * $Date: 2007/12/14 12:04:08 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -15,7 +15,6 @@ package de.willuhn.jameica.messaging.server;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -238,24 +237,10 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
         String channel = command.substring(4); // get/put abschneiden
 
         if (get)
-        {
-          os.write(service.get(channel));
-        }
+          service.get(channel,os);
         else
-        {
-          ByteArrayOutputStream bos = new ByteArrayOutputStream();
-          buf = new byte[4096];
-          read = -1;
-          do
-          {
-            read = is.read(buf);
-            if (read != -1)
-              bos.write(buf,0,read);
-          }
-          while (read != -1);
-          service.put(channel,bos.toByteArray());
-        }
-        
+          service.put(channel,is);
+
         os.flush();
       }
       finally
@@ -274,6 +259,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 /**********************************************************************
  * $Log: TcpServiceImpl.java,v $
+ * Revision 1.5  2007/12/14 12:04:08  willuhn
+ * @C TCP-Listener verwendet jetzt Stream-API
+ *
  * Revision 1.4  2007/12/14 09:56:59  willuhn
  * @N Channel-Angabe mit Punkt-Notation
  *
