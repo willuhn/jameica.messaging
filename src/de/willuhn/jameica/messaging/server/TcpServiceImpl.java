@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2007/12/14 00:13:54 $
+ * $Revision: 1.4 $
+ * $Date: 2007/12/14 09:56:59 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -234,21 +234,12 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
           return;
         }
 
-        boolean get = command.startsWith("get ");
-        command = command.substring(4); // get/put abschneiden
-        int sep = command.indexOf(":");
-        if (sep == -1)
-        {
-          Logger.warn("invalid command given: " + command);
-          return;
-        }
-        
-        String channel   = command.substring(0,sep);
-        String recipient = command.substring(sep+1);
+        boolean get    = command.startsWith("get ");
+        String channel = command.substring(4); // get/put abschneiden
 
         if (get)
         {
-          os.write(service.get(channel,recipient));
+          os.write(service.get(channel));
         }
         else
         {
@@ -262,7 +253,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
               bos.write(buf,0,read);
           }
           while (read != -1);
-          service.put(channel,recipient,bos.toByteArray());
+          service.put(channel,bos.toByteArray());
         }
         
         os.flush();
@@ -283,6 +274,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 /**********************************************************************
  * $Log: TcpServiceImpl.java,v $
+ * Revision 1.4  2007/12/14 09:56:59  willuhn
+ * @N Channel-Angabe mit Punkt-Notation
+ *
  * Revision 1.3  2007/12/14 00:13:54  willuhn
  * *** empty log message ***
  *

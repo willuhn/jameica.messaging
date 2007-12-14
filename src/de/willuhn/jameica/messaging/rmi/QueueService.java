@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/Attic/QueueService.java,v $
- * $Revision: 1.1 $
- * $Date: 2007/12/13 23:31:38 $
+ * $Revision: 1.2 $
+ * $Date: 2007/12/14 09:56:59 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -26,28 +26,32 @@ public interface QueueService extends Service
 {
   /**
    * Uebergibt eine Nachricht an die Queue.
-   * @param channel Name des Channels.
-   * @param recipient Name des Empfaengers.
+   * @param channel Name des Channels. Der Name sollte nur
+   * aus Buchstaben, Zahlen und Punkten bestehen.
+   * Punkte koennen als Trennzeichen fuer Sub-Channels verwendet
+   * werden (wie bei Java-Packages).
    * @param data die Nutzdaten.
    * @return true, wenn die Nachricht gespeichert werden konnte.
    * Ist ein Zugestaendnis an XML-RPC, da dort ein Rueckgabe-Wert Pflicht ist.
    * @throws RemoteException
    */
-  public boolean put(String channel, String recipient, byte[] data) throws RemoteException;
+  public boolean put(String channel, byte[] data) throws RemoteException;
   
   /**
    * Ruft die naechste vorliegende Nachricht ab.
    * @param channel Channel.
-   * @param recipient Empfaenger.
    * @return die naechste Nachricht oder <code>null</code> wenn keine weiteren Nachrichten vorliegen.
    * @throws RemoteException
    */
-  public byte[] get(String channel, String recipient) throws RemoteException;
+  public byte[] get(String channel) throws RemoteException;
 }
 
 
 /*********************************************************************
  * $Log: QueueService.java,v $
+ * Revision 1.2  2007/12/14 09:56:59  willuhn
+ * @N Channel-Angabe mit Punkt-Notation
+ *
  * Revision 1.1  2007/12/13 23:31:38  willuhn
  * @N initial import
  *

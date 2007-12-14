@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/QueueServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2007/12/13 23:31:38 $
+ * $Revision: 1.2 $
+ * $Date: 2007/12/14 09:56:59 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -106,14 +106,14 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
   }
 
   /**
-   * @see de.willuhn.jameica.xmlrpc.rmi.QueueService#get(java.lang.String, java.lang.String)
+   * @see de.willuhn.jameica.messaging.rmi.QueueService#get(java.lang.String)
    */
-  public synchronized byte[] get(String channel, String recipient) throws RemoteException
+  public synchronized byte[] get(String channel) throws RemoteException
   {
-    String logPrefix = "[channel: " + channel + "][recipient:" + recipient + "] ";
+    String logPrefix = "[channel: " + channel + "] ";
 
     InputStream is = null;
-    File target    = prepare(channel,recipient,true);
+    File target    = prepare(channel,true);
 
     if (target == null || !target.exists())
     {
@@ -162,11 +162,11 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
   }
 
   /**
-   * @see de.willuhn.jameica.xmlrpc.rmi.QueueService#put(java.lang.String, java.lang.String, byte[])
+   * @see de.willuhn.jameica.messaging.rmi.QueueService#put(java.lang.String, byte[])
    */
-  public synchronized boolean put(String channel, String recipient, byte[] data) throws RemoteException
+  public synchronized boolean put(String channel, byte[] data) throws RemoteException
   {
-    String logPrefix = "[channel: " + channel + "][recipient:" + recipient + "] ";
+    String logPrefix = "[channel: " + channel + "] ";
     if (data == null || data.length == 0)
     {
       Logger.info(logPrefix + " got empty message, ignoring");
@@ -176,7 +176,7 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
     OutputStream os = null;
     try
     {
-      File target = prepare(channel,recipient,false);
+      File target = prepare(channel,false);
       Logger.debug(logPrefix + "writing message file " + target.getAbsolutePath());
       os = new BufferedOutputStream(new FileOutputStream(target));
       os.write(data);
@@ -212,12 +212,10 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
     if (file == null)
       return;
 
+    File workdir = getWorkdir();
     File current = file;
     
-    // Ebene 0: Datei selbst
-    // Ebene 1: Recipient-Verzeichnis
-    // Ebene 2: Channel-Verzeichnis
-    for (int i=0;i<3;++i) 
+    while (current.getAbsolutePath().startsWith(workdir.getAbsolutePath()))
     {
       if (!current.exists())
         return;
@@ -228,29 +226,39 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
         if (content != null && content.length > 0)
           return; // Verzeichnis noch nicht leer
       }
+      Logger.info("delete " + current.getAbsolutePath());
       current.delete();
       current = parent;
     }
+  }
+
+  /**
+   * Liefert das Workdir.
+   * @return das Work-Dir.
+   * @throws RemoteException Wenn das Workdir nicht beschreibbar ist oder nicht erstellt werden konnte.
+   */
+  private File getWorkdir() throws RemoteException
+  {
+    PluginResources res = Application.getPluginLoader().getPlugin(Plugin.class).getResources();
+    Settings settings   = res.getSettings();
+    File workdir = new File(settings.getString("workdir",res.getWorkPath()),"queue");
+    if ((workdir.isDirectory() && workdir.canWrite()) || workdir.mkdirs())
+      return workdir;
+    throw new RemoteException("unable to create workdir or not writable: " + workdir.getAbsolutePath());
   }
   
   /**
    * Bereitet die Speicherung der Nachricht vor.
    * @param channel Channel.
-   * @param recipient Empfaenger.
    * @param read true, wenn die Datei zum Lesen gesucht wird, sonst false.
    * @return Zugehoerige Datei.
    * @throws RemoteException
    */
-  private synchronized File prepare(String channel, String recipient, boolean read) throws RemoteException
+  private synchronized File prepare(String channel, boolean read) throws RemoteException
   {
-    PluginResources res = Application.getPluginLoader().getPlugin(Plugin.class).getResources();
-    Settings settings   = res.getSettings();
-    File workdir        = new File(settings.getString("workdir",res.getWorkPath()),"queue");
+    channel = escape(channel);
 
-    File dir = new File(workdir.getAbsolutePath() +
-                        File.separator + escape(channel) + 
-                        File.separator + escape(recipient));
-
+    File dir = new File(getWorkdir().getAbsolutePath(),channel);
     if (!dir.exists() && !dir.mkdirs())
       throw new RemoteException("unable to create message dir " + dir.getAbsolutePath());
 
@@ -298,17 +306,27 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
       return "default";
 
     // Doppelpunkte gegen doppelte Unterstriche ersetzen
-    name = name.replaceAll(":","__");
+    name = name.replaceAll("(:){1,}","__");
 
     // Alle Leerzeichen gegen Unterstrich ersetzen
     name = name.replaceAll(" ","_");
 
-    // Wir nehmen alle Zeichen bis auf Buchstaben, Zahlen und Unterstrich raus 
-    name = name.replaceAll("[^A-Za-z0-9\\-_]","");
+    // Mehrfachpunkte gegen einzelne Punkte ersetzen
+    name = name.replaceAll("(\\.){2,}",".");
+
+    // Wir nehmen alle Zeichen bis auf Buchstaben, Zahlen, Punkt und Unterstrich raus 
+    name = name.replaceAll("[^A-Za-z0-9\\-_\\.]","");
+
+    // Unterstriche am Ende ersetzen wir
+    name = name.replaceAll("(_){1,}$","");
+
+    // Vorbereiten der Verzeichnisse
+    name = name.replaceAll("\\.",File.separator);
 
     // und kuerzen noch auf maximal 40 Zeichen
-    if (name.length() > 50)
-      name = name.substring(0,49);
+    if (name.length() > 255)
+      name = name.substring(0,254);
+
     return name;
   }
 
@@ -317,6 +335,9 @@ public class QueueServiceImpl extends UnicastRemoteObject implements
 
 /*********************************************************************
  * $Log: QueueServiceImpl.java,v $
+ * Revision 1.2  2007/12/14 09:56:59  willuhn
+ * @N Channel-Angabe mit Punkt-Notation
+ *
  * Revision 1.1  2007/12/13 23:31:38  willuhn
  * @N initial import
  *

@@ -26,7 +26,6 @@ my $cli = RPC::XML::Client->new($url);
 # Message erzeugen
 my @msg;
 push(@msg,RPC::XML::string->new("channel"));   # Name des Channels
-push(@msg,RPC::XML::string->new("recipient")); # Name des Empfaengers
 push(@msg,RPC::XML::base64->new("Das ist die eigentliche Nachricht")); # Inhalt der Nachricht
  
 # Message an Queue senden
@@ -41,7 +40,6 @@ my $resp = $cli->send_request("jameica.xmlrpc.queue.put",@msg);
 # Message erzeugen
 my @msg;
 push(@msg,RPC::XML::string->new("channel"));   # Name des Channels
-push(@msg,RPC::XML::string->new("recipient")); # Name des Empfaengers
 
 # Message an Queue senden
 my $resp = $cli->send_request("jameica.xmlrpc.queue.get",@msg);
