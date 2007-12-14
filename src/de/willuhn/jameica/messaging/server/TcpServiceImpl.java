@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2007/12/14 00:02:43 $
+ * $Revision: 1.3 $
+ * $Date: 2007/12/14 00:13:54 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -147,7 +147,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
       int port = settings.getInt("listener.tcp.port",9000);
       Logger.info("binding to " + (address != null ? address.getHostAddress() : "*") + ":" + port);
       this.server = new ServerSocket(port,-1,address);
-      Logger.info("tcp listener started");
+      Logger.info("tcp connector to queue service started");
       this.running = true;
     }
     
@@ -168,12 +168,13 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
       {
         while (this.running)
         {
+          Socket socket = this.server.accept();
           try
           {
             // TODO Koennte man mal noch Multithreaded machen
-            handleRequest(this.server.accept());
+            handleRequest(socket);
           }
-          catch (IOException e)
+          catch (Exception e)
           {
             // Kann z.Bsp. passieren, wenn der Client den Socket unerwartet schliesst
             Logger.write(Level.DEBUG,"error while processing request",e);
@@ -213,8 +214,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
         
         ////////////////////////////////////////////////////////////////////////
         // Kommando auswerten. Erste Zeile - maximal 255 Zeichen
-        int count = 255;
-        byte[] buf = new byte[255];
+        int count = 0;
+        int max = 255;
+        byte[] buf = new byte[max];
         int read = -1;
         do
         {
@@ -223,10 +225,10 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
             break; // Ende
           buf[count++] = (byte) read;
         }
-        while (count<255);
+        while (count<max);
         ////////////////////////////////////////////////////////////////////////
         String command = new String(buf).trim();
-        if (command.length() == 0 || !command.startsWith("get ") || !command.startsWith("put "))
+        if (command.length() == 0 || (!command.startsWith("get ") && !command.startsWith("put ")))
         {
           Logger.warn("invalid command given: " + command);
           return;
@@ -281,6 +283,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 /**********************************************************************
  * $Log: TcpServiceImpl.java,v $
+ * Revision 1.3  2007/12/14 00:13:54  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.2  2007/12/14 00:02:43  willuhn
  * *** empty log message ***
  *
