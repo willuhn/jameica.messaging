@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.6 $
- * $Date: 2008/01/16 16:44:47 $
+ * $Revision: 1.7 $
+ * $Date: 2008/01/16 17:36:30 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -25,6 +25,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
 
+import de.willuhn.jameica.messaging.LookupService;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.ArchiveService;
 import de.willuhn.jameica.messaging.rmi.MessageService;
@@ -60,7 +61,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
    */
   public String getName() throws RemoteException
   {
-    return "TCP-Service";
+    return "connector.tcp";
   }
 
   /**
@@ -141,6 +142,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
      */
     private Worker() throws Exception
     {
+      super("tcp.connector for jameica.messaging");
       Settings settings = Application.getPluginLoader().getPlugin(Plugin.class).getResources().getSettings();
 
       InetAddress address = null;
@@ -156,6 +158,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
       this.server = new ServerSocket(port,-1,address);
       Logger.info("raw tcp connector started");
       this.running = true;
+      
+      String url  = (address != null ? address.getHostName() : Application.getCallback().getHostname()) + ":" + port;
+      LookupService.register("tcp:" + Plugin.class.getName() + "." + TcpServiceImpl.this.getName(),url);
     }
     
     /**
@@ -164,6 +169,14 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
     private void shutdown()
     {
       this.running = false;
+      try
+      {
+        LookupService.unRegister("tcp:" + Plugin.class.getName() + "." + TcpServiceImpl.this.getName());
+      }
+      catch (Exception e)
+      {
+        Logger.error("unable to unregister multicast lookup",e);
+      }
     }
     
     /**
@@ -339,6 +352,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 /**********************************************************************
  * $Log: TcpServiceImpl.java,v $
+ * Revision 1.7  2008/01/16 17:36:30  willuhn
+ * @N Multicast-Lookup
+ *
  * Revision 1.6  2008/01/16 16:44:47  willuhn
  * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
  * @N Doppel-Funktion des Systems als Archiv und Queue
