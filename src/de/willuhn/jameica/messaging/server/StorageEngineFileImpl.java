@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2008/01/16 16:44:47 $
+ * $Revision: 1.4 $
+ * $Date: 2008/01/16 23:31:43 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -64,14 +64,13 @@ public class StorageEngineFileImpl implements StorageEngine
       byte[] buf = new byte[4096];
       long count = 0;
       int read   = 0;
-      do
+      while ((read = is.read(buf)) > -1)
       {
         read = is.read(buf);
-        if (read > 0)
+        if (read > 0) // Nur schreiben, wenn wirklich was gelesen wurde
           os.write(buf,0,read);
         count += read;
       }
-      while (read != -1);
       os.flush(); // Stellt sicher, dass alles geschrieben wurde, bevor wir den InputStream schliessen
       Logger.info("message [UUID: " + uuid + " sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
     }
@@ -184,14 +183,13 @@ public class StorageEngineFileImpl implements StorageEngine
       byte[] buf = new byte[4096];
       long count = 0;
       int read   = 0;
-      do
+      while ((read = is.read(buf)) > -1)
       {
         read = is.read(buf);
-        if (read > 0)
+        if (read > 0) // Nur schreiben, wenn wirklich was gelesen wurde
           os.write(buf,0,read);
         count += read;
       }
-      while (read != -1);
       os.flush();
       Logger.info("[channel: " + channel + "] message received [UUID: " + uuid + "] (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
       return uuid;
@@ -286,6 +284,9 @@ public class StorageEngineFileImpl implements StorageEngine
 
 /*********************************************************************
  * $Log: StorageEngineFileImpl.java,v $
+ * Revision 1.4  2008/01/16 23:31:43  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.3  2008/01/16 16:44:47  willuhn
  * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
  * @N Doppel-Funktion des Systems als Archiv und Queue

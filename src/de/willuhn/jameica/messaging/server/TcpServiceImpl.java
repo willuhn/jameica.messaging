@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.7 $
- * $Date: 2008/01/16 17:36:30 $
+ * $Revision: 1.8 $
+ * $Date: 2008/01/16 23:31:43 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -284,7 +284,11 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
         {
           try {
             os.close();
-          } catch (Exception e) {} // ignore
+          } 
+          catch (Exception e) {
+            Logger.error("error while closing outputstream",e);
+            
+          } // ignore
         }
       }
     }
@@ -325,7 +329,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
     {
       String uuid = service.put(name,is);
       os.write(uuid.getBytes());
-      os.write('\n');
+      os.write("\r\n".getBytes());
     }
   }
 
@@ -352,6 +356,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 /**********************************************************************
  * $Log: TcpServiceImpl.java,v $
+ * Revision 1.8  2008/01/16 23:31:43  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.7  2008/01/16 17:36:30  willuhn
  * @N Multicast-Lookup
  *
