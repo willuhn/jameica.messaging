@@ -13,8 +13,9 @@
   </classfinder>
 
   <services>
-    <service name="tcpconnector"     depends="queue" autostart="true" class="de.willuhn.jameica.messaging.rmi.TcpService" />
     <service name="queue"            depends=""      autostart="true" class="de.willuhn.jameica.messaging.rmi.QueueService" />
+    <service name="archive"          depends=""      autostart="true" class="de.willuhn.jameica.messaging.rmi.ArchiveService" />
+    <service name="connector.tcp"    depends=""      autostart="true" class="de.willuhn.jameica.messaging.rmi.TcpService" />
   </services>
 </plugin>
 

@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2007/12/14 12:04:08 $
+ * $Revision: 1.3 $
+ * $Date: 2008/01/16 16:44:47 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -16,14 +16,19 @@ package de.willuhn.jameica.messaging.server;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.rmi.RemoteException;
-import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 
+import de.willuhn.io.FileFinder;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.StorageEngine;
 import de.willuhn.jameica.plugin.PluginResources;
@@ -36,35 +41,24 @@ import de.willuhn.logging.Logger;
  */
 public class StorageEngineFileImpl implements StorageEngine
 {
-  // Maximal-Anzahl von Nachrichten pro Verzeichnis
+  // Maximal-Anzahl von Nachrichten pro Channel
   private final static int MAX_MESSAGES = 10000;
-  private final static DecimalFormat decimalformat = new DecimalFormat("00000000");
 
   /**
    * @see de.willuhn.jameica.messaging.rmi.StorageEngine#get(java.lang.String, java.io.OutputStream)
    */
-  public synchronized void get(String channel, OutputStream os) throws IOException
+  public synchronized void get(String uuid, OutputStream os) throws IOException
   {
-    String logPrefix = "[channel: " + channel + "] ";
     if (os == null)
-    {
-      Logger.info(logPrefix + " no outputstream given");
-      return;
-    }
+      throw new IOException("no outputstream given");
+
+    File f = find(uuid);
 
     InputStream is = null;
-    File target    = prepare(channel,true);
-
-    if (target == null || !target.exists())
-    {
-      Logger.debug(logPrefix + "queue empty");
-      return;
-    }
-    
     try
     {
-      Logger.debug(logPrefix + "reading message file " + target.getAbsolutePath());
-      is = new BufferedInputStream(new FileInputStream(target));
+      Logger.debug("reading message [UUID: " + uuid + "]");
+      is = new BufferedInputStream(new FileInputStream(f));
       long started = System.currentTimeMillis();
 
       byte[] buf = new byte[4096];
@@ -78,8 +72,8 @@ public class StorageEngineFileImpl implements StorageEngine
         count += read;
       }
       while (read != -1);
-      os.flush();
-      Logger.info("[channel: " + channel + "] message sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
+      os.flush(); // Stellt sicher, dass alles geschrieben wurde, bevor wir den InputStream schliessen
+      Logger.info("message [UUID: " + uuid + " sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
     }
     finally
     {
@@ -94,27 +88,96 @@ public class StorageEngineFileImpl implements StorageEngine
           Logger.error("error while closing file",e);
         }
       }
-      cleanup(target);
     }
   }
 
   /**
+   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#next(java.lang.String)
+   */
+  public synchronized String next(String channel) throws IOException
+  {
+    File dir = new File(getWorkdir().getAbsolutePath(),escape(channel));
+    if (!dir.exists())
+      throw new IOException("channel does not exist");
+
+    File[] files = dir.listFiles(new FileFilter() {
+      /**
+       * @see java.io.FileFilter#accept(java.io.File)
+       */
+      public boolean accept(File pathname)
+      {
+        return pathname.isFile() && pathname.canRead();
+      }
+    });
+
+    // Bevor wir sortieren, schauen wir, ob in dem Verzeichnis ueberhaupt was drin ist
+    if (files == null || files.length == 0)
+      return null; // Channel leer
+
+    // Wir sortieren nach "LastModified". Alte Dateien zuerst.
+    List list = Arrays.asList(files); 
+    Collections.sort(list, new Comparator() {
+      public int compare(Object f1, Object f2)
+      {
+        return (int) (((File)f1).lastModified() - ((File)f2).lastModified()); 
+      }
+    });
+    File found = (File) list.get(0);
+    return found.getName();
+  }
+  
+  /**
+   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#delete(java.lang.String)
+   */
+  public synchronized void delete(String uuid) throws IOException
+  {
+    if (uuid == null || uuid.length() == 0)
+      throw new IOException("no UUID given");
+
+    File workdir = getWorkdir();
+    File current = find(uuid);
+    
+    while (current.getAbsolutePath().startsWith(workdir.getAbsolutePath()))
+    {
+      if (!current.exists())
+        return;
+      File parent = current.getParentFile();
+      if (current.isDirectory())
+      {
+        String[] content = current.list();
+        if (content != null && content.length > 0)
+          return; // Verzeichnis noch nicht leer
+      }
+      Logger.info("delete " + current.getAbsolutePath());
+      current.delete();
+      current = parent;
+    }
+
+  }
+  
+  /**
    * @see de.willuhn.jameica.messaging.rmi.StorageEngine#put(java.lang.String, java.io.InputStream)
    */
-  public synchronized void put(String channel, InputStream is) throws IOException
+  public synchronized String put(String channel, InputStream is) throws IOException
   {
-    String logPrefix = "[channel: " + channel + "] ";
     if (is == null)
-    {
-      Logger.info(logPrefix + " got empty message, ignoring");
-      return;
-    }
+      throw new IOException("no message given");
+
+    channel = escape(channel);
+    File dir = new File(getWorkdir().getAbsolutePath(),channel);
+    if (!dir.exists() && !dir.mkdirs())
+      throw new IOException("unable to create message dir");
     
+    String[] size = dir.list();
+    if (size != null && size.length >= MAX_MESSAGES)
+      throw new IOException("message limit (" + + MAX_MESSAGES + " exceeded for channel " + channel);
+
     OutputStream os = null;
     try
     {
-      File target = prepare(channel,false);
-      Logger.debug(logPrefix + "writing message file " + target.getAbsolutePath());
+      String uuid = UUID.randomUUID().toString();
+      File target = new File(dir,uuid);
+
       os = new BufferedOutputStream(new FileOutputStream(target));
       long started = System.currentTimeMillis();
 
@@ -130,11 +193,8 @@ public class StorageEngineFileImpl implements StorageEngine
       }
       while (read != -1);
       os.flush();
-      Logger.info("[channel: " + channel + "] message received (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
-    }
-    catch (IOException e)
-    {
-      throw new RemoteException("unable to queue message",e);
+      Logger.info("[channel: " + channel + "] message received [UUID: " + uuid + "] (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
+      return uuid;
     }
     finally
     {
@@ -152,96 +212,38 @@ public class StorageEngineFileImpl implements StorageEngine
   }
   
   /**
-   * Raeumt die Dateien und Queue-Verzeichnisse wieder weg.
-   * @param file die zu loeschende Datei.
-   * @throws RemoteException
+   * Sucht eine Datei anhand der UUID.
+   * @param uuid die UUID.
+   * @return die Datei - niemals null.
+   * @throws IOException wenn die Datei nicht gefunden wurde.
    */
-  private synchronized void cleanup(File file) throws RemoteException
+  private File find(String uuid) throws IOException
   {
-    if (file == null)
-      return;
+    if (uuid == null || uuid.length() == 0)
+      throw new IOException("no UUID given");
 
-    File workdir = getWorkdir();
-    File current = file;
-    
-    while (current.getAbsolutePath().startsWith(workdir.getAbsolutePath()))
-    {
-      if (!current.exists())
-        return;
-      File parent = current.getParentFile();
-      if (current.isDirectory())
-      {
-        String[] content = current.list();
-        if (content != null && content.length > 0)
-          return; // Verzeichnis noch nicht leer
-      }
-      Logger.info("delete " + current.getAbsolutePath());
-      current.delete();
-      current = parent;
-    }
+    FileFinder finder = new FileFinder(getWorkdir());
+    finder.matches("^" + uuid + "$");
+    File[] result = finder.findRecursive();
+    if (result == null || result.length == 0)
+      throw new IOException("message not found [UUID: " + uuid + "]");
+    return result[0];
   }
-
+  
+  
   /**
    * Liefert das Workdir.
    * @return das Work-Dir.
-   * @throws RemoteException Wenn das Workdir nicht beschreibbar ist oder nicht erstellt werden konnte.
+   * @throws IOException Wenn das Workdir nicht beschreibbar ist oder nicht erstellt werden konnte.
    */
-  private File getWorkdir() throws RemoteException
+  private File getWorkdir() throws IOException
   {
     PluginResources res = Application.getPluginLoader().getPlugin(Plugin.class).getResources();
     Settings settings   = res.getSettings();
-    File workdir = new File(settings.getString("workdir",res.getWorkPath()),"queue");
+    File workdir = new File(settings.getString("workdir",res.getWorkPath()),"archive");
     if ((workdir.isDirectory() && workdir.canWrite()) || workdir.mkdirs())
       return workdir;
-    throw new RemoteException("unable to create workdir or not writable: " + workdir.getAbsolutePath());
-  }
-  
-  /**
-   * Bereitet die Speicherung der Nachricht vor.
-   * @param channel Channel.
-   * @param read true, wenn die Datei zum Lesen gesucht wird, sonst false.
-   * @return Zugehoerige Datei.
-   * @throws RemoteException
-   */
-  private synchronized File prepare(String channel, boolean read) throws RemoteException
-  {
-    channel = escape(channel);
-
-    File dir = new File(getWorkdir().getAbsolutePath(),channel);
-    if (!dir.exists() && !dir.mkdirs())
-      throw new RemoteException("unable to create message dir " + dir.getAbsolutePath());
-
-    if (read)
-    {
-      // Bevor wir alles durchsuchen, checken wir, ob ueberhaupt
-      // was in dem Verzeichnis ist
-      String[] names = dir.list();
-      if (names == null || names.length == 0)
-        return null; // Queue leer
-    }
-    File f = null;
-    for (int i=0;i<MAX_MESSAGES;++i)
-    {
-      f = new File(dir,decimalformat.format(i) + ".msg");
-      // Bei read=true nehmen wir die erste gefundene Datei
-      // Bei read=false die erste, die noch nicht existiert
-      if (read)
-      {
-        if (f.exists()) // gefunden
-          return f;
-        continue; // Weitersuchen
-      }
-      
-      // Schreiben
-      if (f.exists())
-        continue; // Weitersuchen
-      return f;
-    }
-    
-    if (read)
-      return null; // Das kann eigentlich gar nicht sein, weil wir dann schon oben rausgeflogen waeren
-    
-    throw new RemoteException("too much messages in this folder, last tested file: " + f);
+    throw new IOException("unable to create workdir or not writable: " + workdir.getAbsolutePath());
   }
 
   /**
@@ -272,7 +274,7 @@ public class StorageEngineFileImpl implements StorageEngine
     // Vorbereiten der Verzeichnisse
     name = name.replaceAll("\\.",File.separator);
 
-    // und kuerzen noch auf maximal 40 Zeichen
+    // und kuerzen noch auf maximal 255 Zeichen
     if (name.length() > 255)
       name = name.substring(0,254);
 
@@ -284,6 +286,10 @@ public class StorageEngineFileImpl implements StorageEngine
 
 /*********************************************************************
  * $Log: StorageEngineFileImpl.java,v $
+ * Revision 1.3  2008/01/16 16:44:47  willuhn
+ * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
+ * @N Doppel-Funktion des Systems als Archiv und Queue
+ *
  * Revision 1.2  2007/12/14 12:04:08  willuhn
  * @C TCP-Listener verwendet jetzt Stream-API
  *
