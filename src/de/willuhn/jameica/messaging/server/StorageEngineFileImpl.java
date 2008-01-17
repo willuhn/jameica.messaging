@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.4 $
- * $Date: 2008/01/16 23:31:43 $
+ * $Revision: 1.5 $
+ * $Date: 2008/01/17 09:48:37 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -138,9 +138,11 @@ public class StorageEngineFileImpl implements StorageEngine
     
     while (current.getAbsolutePath().startsWith(workdir.getAbsolutePath()))
     {
-      if (!current.exists())
+      if (!current.exists() || !current.canWrite())
         return;
       File parent = current.getParentFile();
+      if (parent != null && workdir.equals(parent))
+        return; // Das Work-Verzeichnis selbst
       if (current.isDirectory())
       {
         String[] content = current.list();
@@ -284,6 +286,9 @@ public class StorageEngineFileImpl implements StorageEngine
 
 /*********************************************************************
  * $Log: StorageEngineFileImpl.java,v $
+ * Revision 1.5  2008/01/17 09:48:37  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.4  2008/01/16 23:31:43  willuhn
  * *** empty log message ***
  *
