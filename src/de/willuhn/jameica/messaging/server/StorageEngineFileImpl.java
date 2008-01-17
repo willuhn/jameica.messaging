@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.6 $
- * $Date: 2008/01/17 09:52:28 $
+ * $Revision: 1.7 $
+ * $Date: 2008/01/17 09:54:48 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -238,7 +238,7 @@ public class StorageEngineFileImpl implements StorageEngine
   {
     PluginResources res = Application.getPluginLoader().getPlugin(Plugin.class).getResources();
     Settings settings   = res.getSettings();
-    File workdir = new File(settings.getString("workdir",res.getWorkPath()),"archive");
+    File workdir = new File(settings.getString("workdir",res.getWorkPath() + File.separator + "archive"));
     if ((workdir.isDirectory() && workdir.canWrite()) || workdir.mkdirs())
       return workdir;
     throw new IOException("unable to create workdir or not writable: " + workdir.getAbsolutePath());
@@ -284,6 +284,9 @@ public class StorageEngineFileImpl implements StorageEngine
 
 /*********************************************************************
  * $Log: StorageEngineFileImpl.java,v $
+ * Revision 1.7  2008/01/17 09:54:48  willuhn
+ * @B falsches workdir
+ *
  * Revision 1.6  2008/01/17 09:52:28  willuhn
  * @B doppeltes Lesen der Bytes
  *
