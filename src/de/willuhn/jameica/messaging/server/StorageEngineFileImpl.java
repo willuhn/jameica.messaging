@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.5 $
- * $Date: 2008/01/17 09:48:37 $
+ * $Revision: 1.6 $
+ * $Date: 2008/01/17 09:52:28 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -66,7 +66,6 @@ public class StorageEngineFileImpl implements StorageEngine
       int read   = 0;
       while ((read = is.read(buf)) > -1)
       {
-        read = is.read(buf);
         if (read > 0) // Nur schreiben, wenn wirklich was gelesen wurde
           os.write(buf,0,read);
         count += read;
@@ -187,7 +186,6 @@ public class StorageEngineFileImpl implements StorageEngine
       int read   = 0;
       while ((read = is.read(buf)) > -1)
       {
-        read = is.read(buf);
         if (read > 0) // Nur schreiben, wenn wirklich was gelesen wurde
           os.write(buf,0,read);
         count += read;
@@ -286,6 +284,9 @@ public class StorageEngineFileImpl implements StorageEngine
 
 /*********************************************************************
  * $Log: StorageEngineFileImpl.java,v $
+ * Revision 1.6  2008/01/17 09:52:28  willuhn
+ * @B doppeltes Lesen der Bytes
+ *
  * Revision 1.5  2008/01/17 09:48:37  willuhn
  * *** empty log message ***
  *
