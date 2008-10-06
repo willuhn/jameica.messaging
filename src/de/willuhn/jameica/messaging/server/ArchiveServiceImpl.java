@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/ArchiveServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/01/16 16:44:47 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/06 23:30:45 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -42,8 +42,10 @@ public class ArchiveServiceImpl extends AbstractMessageServiceImpl implements
   {
     try
     {
-       this.storage.delete(uuid);
-       return true;
+      Message msg = new Message();
+      msg.setUuid(uuid);
+      this.storage.delete(msg);
+      return true;
     }
     catch (IOException e)
     {
@@ -66,6 +68,9 @@ public class ArchiveServiceImpl extends AbstractMessageServiceImpl implements
 
 /*********************************************************************
  * $Log: ArchiveServiceImpl.java,v $
+ * Revision 1.2  2008/10/06 23:30:45  willuhn
+ * @N Support fuer Properties in Messages
+ *
  * Revision 1.1  2008/01/16 16:44:47  willuhn
  * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
  * @N Doppel-Funktion des Systems als Archiv und Queue

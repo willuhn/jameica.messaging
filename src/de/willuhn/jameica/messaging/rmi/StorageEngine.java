@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/Attic/StorageEngine.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/01/16 16:44:47 $
+ * $Revision: 1.3 $
+ * $Date: 2008/10/06 23:30:45 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -14,8 +14,8 @@
 package de.willuhn.jameica.messaging.rmi;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import de.willuhn.jameica.messaging.server.Message;
 
 /**
  * Interface fuer den Storage-Service.
@@ -25,13 +25,10 @@ public interface StorageEngine
 {
   /**
    * Ruft die Nachricht ab.
-   * @param uuid ID der Nachricht.
-   * @param os OutputStream, in den die Message geschrieben wird.
-   * Der Stream wird <b>NICHT</b> von der Storage-Engine geschlossen,
-   * das muss also vom Aufrufer getan werden.
+   * @param message die Nachricht.
    * @throws IOException
    */
-  public void get(String uuid, OutputStream os) throws IOException;
+  public void get(Message message) throws IOException;
 
   /**
    * Liefert die UUID der naechsten Nachricht in diesem Channel oder null.
@@ -43,28 +40,28 @@ public interface StorageEngine
   
   /**
    * Loescht die Nachricht mit der angegebenen UUID.
-   * @param uuid UUID.
+   * @param message die Message.
    * @throws IOException
    */
-  public void delete(String uuid) throws IOException;
+  public void delete(Message message) throws IOException;
 
   /**
    * Uebergibt eine Nachricht an den Speicher.
    * @param channel Name des Channels. 
    * Punkte koennen als Trennzeichen fuer Sub-Channels verwendet
    * werden (wie bei Java-Packages).
-   * @param is InputStream, von dem die Nachricht gelesen wird.
-   * Der Stream wird <b>NICHT</b> von der Storage-Engine geschlossen,
-   * das muss also vom Aufrufer getan werden.
-   * @return eine UUID fuer diese Nachricht.
+   * @param message die Nachricht.
    * @throws IOException
    */
-  public String put(String channel, InputStream is) throws IOException;
+  public void put(String channel, Message message) throws IOException;
 }
 
 
 /*********************************************************************
  * $Log: StorageEngine.java,v $
+ * Revision 1.3  2008/10/06 23:30:45  willuhn
+ * @N Support fuer Properties in Messages
+ *
  * Revision 1.2  2008/01/16 16:44:47  willuhn
  * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
  * @N Doppel-Funktion des Systems als Archiv und Queue

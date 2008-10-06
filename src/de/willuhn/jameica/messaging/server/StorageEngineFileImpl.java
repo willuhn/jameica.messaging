@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.7 $
- * $Date: 2008/01/17 09:54:48 $
+ * $Revision: 1.8 $
+ * $Date: 2008/10/06 23:30:45 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -25,7 +25,10 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import de.willuhn.io.FileFinder;
@@ -45,16 +48,22 @@ public class StorageEngineFileImpl implements StorageEngine
   private final static int MAX_MESSAGES = 10000;
 
   /**
-   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#get(java.lang.String, java.io.OutputStream)
+   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#get(de.willuhn.jameica.messaging.server.Message)
    */
-  public synchronized void get(String uuid, OutputStream os) throws IOException
+  public synchronized void get(Message message) throws IOException
   {
+    if (message == null)
+      throw new IOException("no message given");
+    
+    OutputStream os = message.getOutputStream();
     if (os == null)
-      throw new IOException("no outputstream given");
+      throw new IOException("no output stream given");
 
+    String uuid = message.getUuid();
     File f = find(uuid);
 
     InputStream is = null;
+    InputStream isProps = null;
     try
     {
       Logger.debug("reading message [UUID: " + uuid + "]");
@@ -71,6 +80,18 @@ public class StorageEngineFileImpl implements StorageEngine
         count += read;
       }
       os.flush(); // Stellt sicher, dass alles geschrieben wurde, bevor wir den InputStream schliessen
+      
+      //////////////////////////////////////////////////////////////////////////
+      // Checken, ob Properties existieren
+      File props = new File(f.getAbsolutePath() + ".properties");
+      if (props.exists() && props.isFile() && props.canRead())
+      {
+        isProps = new BufferedInputStream(new FileInputStream(props));
+        Properties p = new Properties();
+        p.load(isProps);
+        message.setAttributes((Map)p.clone());
+      }
+      //////////////////////////////////////////////////////////////////////////
       Logger.info("message [UUID: " + uuid + " sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
     }
     finally
@@ -84,6 +105,17 @@ public class StorageEngineFileImpl implements StorageEngine
         catch (Exception e)
         {
           Logger.error("error while closing file",e);
+        }
+      }
+      if (isProps != null)
+      {
+        try
+        {
+          isProps.close();
+        }
+        catch (Exception e)
+        {
+          Logger.error("error while closing properties",e);
         }
       }
     }
@@ -125,14 +157,15 @@ public class StorageEngineFileImpl implements StorageEngine
   }
   
   /**
-   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#delete(java.lang.String)
+   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#delete(de.willuhn.jameica.messaging.server.Message)
    */
-  public synchronized void delete(String uuid) throws IOException
+  public synchronized void delete(Message message) throws IOException
   {
-    if (uuid == null || uuid.length() == 0)
-      throw new IOException("no UUID given");
+    if (message == null)
+      throw new IOException("no message given");
 
     File workdir = getWorkdir();
+    String uuid = message.getUuid();
     File current = find(uuid);
     
     while (current.getAbsolutePath().startsWith(workdir.getAbsolutePath()))
@@ -150,18 +183,29 @@ public class StorageEngineFileImpl implements StorageEngine
       }
       Logger.info("delete " + current.getAbsolutePath());
       current.delete();
+      
+      File props = new File(current.getAbsolutePath() + ".properties");
+      if (props.exists() && props.isFile() && props.canWrite())
+      {
+        Logger.info("delete " + props.getAbsolutePath());
+        props.delete();
+      }
       current = parent;
     }
 
   }
   
   /**
-   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#put(java.lang.String, java.io.InputStream)
+   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#put(java.lang.String, de.willuhn.jameica.messaging.server.Message)
    */
-  public synchronized String put(String channel, InputStream is) throws IOException
+  public synchronized void put(String channel, Message message) throws IOException
   {
-    if (is == null)
+    if (message == null)
       throw new IOException("no message given");
+    
+    InputStream is = message.getInputStream();
+    if (is == null)
+      throw new IOException("no input stream given");
 
     channel = escape(channel);
     File dir = new File(getWorkdir().getAbsolutePath(),channel);
@@ -173,6 +217,7 @@ public class StorageEngineFileImpl implements StorageEngine
       throw new IOException("message limit (" + + MAX_MESSAGES + " exceeded for channel " + channel);
 
     OutputStream os = null;
+    OutputStream osProps = null;
     try
     {
       String uuid = UUID.randomUUID().toString();
@@ -184,15 +229,29 @@ public class StorageEngineFileImpl implements StorageEngine
       byte[] buf = new byte[4096];
       long count = 0;
       int read   = 0;
-      while ((read = is.read(buf)) > -1)
+      while ((read = is.read(buf)) != -1)
       {
-        if (read > 0) // Nur schreiben, wenn wirklich was gelesen wurde
+        if (read > 0)
           os.write(buf,0,read);
         count += read;
       }
       os.flush();
+      
+      //////////////////////////////////////////////////////////////////////////
+      // Ggf. noch Properties speichern
+      Map attributes = message.getAttributes();
+      if (attributes != null && attributes.size() > 0)
+      {
+        osProps = new BufferedOutputStream(new FileOutputStream(new File(target.getAbsolutePath() + ".properties")));
+        Properties props = new Properties();
+        props.putAll(attributes);
+        props.store(osProps,uuid + " - " + new Date().toString());
+      }
+      //
+      //////////////////////////////////////////////////////////////////////////
+      
       Logger.info("[channel: " + channel + "] message received [UUID: " + uuid + "] (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
-      return uuid;
+      message.setUuid(uuid);
     }
     finally
     {
@@ -204,6 +263,16 @@ public class StorageEngineFileImpl implements StorageEngine
         } catch (Exception e)
         {
           Logger.error("error while closing file",e);
+        }
+      }
+      if (osProps != null)
+      {
+        try
+        {
+          osProps.close();
+        } catch (Exception e)
+        {
+          Logger.error("error while closing properties",e);
         }
       }
     }
@@ -284,6 +353,9 @@ public class StorageEngineFileImpl implements StorageEngine
 
 /*********************************************************************
  * $Log: StorageEngineFileImpl.java,v $
+ * Revision 1.8  2008/10/06 23:30:45  willuhn
+ * @N Support fuer Properties in Messages
+ *
  * Revision 1.7  2008/01/17 09:54:48  willuhn
  * @B falsches workdir
  *
