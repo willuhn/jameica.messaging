@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/AbstractMessageServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/06 23:30:45 $
+ * $Revision: 1.3 $
+ * $Date: 2008/10/06 23:41:55 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Map;
 
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.MessageService;
@@ -119,13 +120,13 @@ public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject imp
   }
 
   /**
-   * @see de.willuhn.jameica.messaging.rmi.MessageService#put(java.lang.String, byte[])
+   * @see de.willuhn.jameica.messaging.rmi.MessageService#put(java.lang.String, byte[], java.util.Map)
    */
-  public synchronized String put(String channel, byte[] data) throws RemoteException
+  public synchronized String put(String channel, byte[] data, Map properties) throws RemoteException
   {
     try
     {
-      return put(channel,new ByteArrayInputStream(data));
+      return put(channel,new ByteArrayInputStream(data),properties);
     }
     catch (IOException e)
     {
@@ -152,14 +153,15 @@ public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject imp
   }
 
   /**
-   * @see de.willuhn.jameica.messaging.rmi.MessageService#put(java.lang.String, java.io.InputStream)
+   * @see de.willuhn.jameica.messaging.rmi.MessageService#put(java.lang.String, java.io.InputStream, java.util.Map)
    */
-  public String put(String channel, InputStream is) throws RemoteException
+  public String put(String channel, InputStream is, Map properties) throws RemoteException
   {
     try
     {
       Message msg = new Message();
       msg.setInputStream(is);
+      msg.setAttributes(properties);
       this.storage.put(channel,msg);
       return msg.getUuid();
     }
@@ -173,6 +175,9 @@ public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject imp
 
 /*********************************************************************
  * $Log: AbstractMessageServiceImpl.java,v $
+ * Revision 1.3  2008/10/06 23:41:55  willuhn
+ * @N Support fuer Properties in Messages
+ *
  * Revision 1.2  2008/10/06 23:30:45  willuhn
  * @N Support fuer Properties in Messages
  *

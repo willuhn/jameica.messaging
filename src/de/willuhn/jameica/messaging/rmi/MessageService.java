@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/Attic/MessageService.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/01/16 16:44:47 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/06 23:41:55 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -16,6 +16,7 @@ package de.willuhn.jameica.messaging.rmi;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.RemoteException;
+import java.util.Map;
 
 import de.willuhn.datasource.Service;
 
@@ -31,10 +32,11 @@ public interface MessageService extends Service
    * @param channel Name des Channels. 
    * Punkte koennen als Trennzeichen fuer Sub-Channels verwendet werden (wie bei Java-Packages).
    * @param data die Nutzdaten.
+   * @param properties optionale Map mit beliebigen Attributen, die mitgespeichert werden sollen.
    * @return eine UUID, anhand derer die Message auch identifiziert werden kann.
    * @throws RemoteException
    */
-  public String put(String channel, byte[] data) throws RemoteException;
+  public String put(String channel, byte[] data, Map properties) throws RemoteException;
   
   /**
    * Uebergibt eine Nachricht an die Queue.
@@ -43,12 +45,13 @@ public interface MessageService extends Service
    * werden (wie bei Java-Packages).
    * @param is die Nutzdaten.
    * @return eine UUID, anhand derer die Message auch identifiziert werden kann.
+   * @param properties optionale Map mit beliebigen Attributen, die mitgespeichert werden sollen.
    * @throws RemoteException
    */
-  public String put(String channel, InputStream is) throws RemoteException;
+  public String put(String channel, InputStream is, Map properties) throws RemoteException;
 
   /**
-   * Liefert die Nachricht mit der angegebenen UUID ab.
+   * Liefert die Nachricht mit der angegebenen UUID.
    * @param uuid ID der Nachricht.
    * @return die Nachricht oder <code>null</code> wenn die Nachricht nicht gefunden wurde.
    * @throws RemoteException
@@ -56,7 +59,7 @@ public interface MessageService extends Service
   public byte[] get(String uuid) throws RemoteException;
 
   /**
-   * Liefert die Nachricht mit der angegebenen UUID ab.
+   * Liefert die Nachricht mit der angegebenen UUID.
    * @param uuid ID der Nachricht.
    * @param os Der Stream, in den die Nachricht geschrieben wird.
    * @throws RemoteException
@@ -67,6 +70,9 @@ public interface MessageService extends Service
 
 /*********************************************************************
  * $Log: MessageService.java,v $
+ * Revision 1.2  2008/10/06 23:41:55  willuhn
+ * @N Support fuer Properties in Messages
+ *
  * Revision 1.1  2008/01/16 16:44:47  willuhn
  * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
  * @N Doppel-Funktion des Systems als Archiv und Queue

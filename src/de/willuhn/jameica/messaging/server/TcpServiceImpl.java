@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.8 $
- * $Date: 2008/01/16 23:31:43 $
+ * $Revision: 1.9 $
+ * $Date: 2008/10/06 23:41:55 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -327,7 +327,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
      */
     public void exec(MessageService service, String name, InputStream is, OutputStream os) throws IOException
     {
-      String uuid = service.put(name,is);
+      String uuid = service.put(name,is,null);
       os.write(uuid.getBytes());
       os.write("\r\n".getBytes());
     }
@@ -356,6 +356,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 /**********************************************************************
  * $Log: TcpServiceImpl.java,v $
+ * Revision 1.9  2008/10/06 23:41:55  willuhn
+ * @N Support fuer Properties in Messages
+ *
  * Revision 1.8  2008/01/16 23:31:43  willuhn
  * *** empty log message ***
  *
