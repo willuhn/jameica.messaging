@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/AbstractMessageServiceImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2008/10/06 23:41:55 $
+ * $Revision: 1.4 $
+ * $Date: 2008/10/07 00:11:09 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -23,7 +23,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
 
 import de.willuhn.jameica.messaging.Plugin;
-import de.willuhn.jameica.messaging.rmi.MessageService;
+import de.willuhn.jameica.messaging.rmi.LocalMessageService;
 import de.willuhn.jameica.messaging.rmi.StorageEngine;
 import de.willuhn.jameica.plugin.PluginResources;
 import de.willuhn.jameica.system.Application;
@@ -34,7 +34,7 @@ import de.willuhn.util.MultipleClassLoader;
 /**
  * Abstrakte Basis-Implementierung eines Message-Services.
  */
-public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject implements MessageService
+public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject implements LocalMessageService
 {
 
   protected StorageEngine storage = null;
@@ -135,7 +135,7 @@ public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject imp
   }
 
   /**
-   * @see de.willuhn.jameica.messaging.rmi.MessageService#get(java.lang.String, java.io.OutputStream)
+   * @see de.willuhn.jameica.messaging.rmi.LocalMessageService#get(java.lang.String, java.io.OutputStream)
    */
   public void get(String uuid, OutputStream os) throws RemoteException
   {
@@ -153,7 +153,7 @@ public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject imp
   }
 
   /**
-   * @see de.willuhn.jameica.messaging.rmi.MessageService#put(java.lang.String, java.io.InputStream, java.util.Map)
+   * @see de.willuhn.jameica.messaging.rmi.LocalMessageService#put(java.lang.String, java.io.InputStream, java.util.Map)
    */
   public String put(String channel, InputStream is, Map properties) throws RemoteException
   {
@@ -175,6 +175,9 @@ public abstract class AbstractMessageServiceImpl extends UnicastRemoteObject imp
 
 /*********************************************************************
  * $Log: AbstractMessageServiceImpl.java,v $
+ * Revision 1.4  2008/10/07 00:11:09  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.3  2008/10/06 23:41:55  willuhn
  * @N Support fuer Properties in Messages
  *

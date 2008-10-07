@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.9 $
- * $Date: 2008/10/06 23:41:55 $
+ * $Revision: 1.10 $
+ * $Date: 2008/10/07 00:11:09 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -28,7 +28,7 @@ import java.util.Hashtable;
 import de.willuhn.jameica.messaging.LookupService;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.ArchiveService;
-import de.willuhn.jameica.messaging.rmi.MessageService;
+import de.willuhn.jameica.messaging.rmi.LocalMessageService;
 import de.willuhn.jameica.messaging.rmi.TcpService;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.jameica.system.Settings;
@@ -265,7 +265,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
           return;
         }
 
-        MessageService ms = (MessageService) Application.getServiceFactory().lookup(Plugin.class,service);
+        LocalMessageService ms = (LocalMessageService) Application.getServiceFactory().lookup(Plugin.class,service);
         c.exec(ms,name,is,os);
         os.flush();
       }
@@ -306,15 +306,12 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
      * @param os
      * @throws IOException
      */
-    public void exec(MessageService service, String name, InputStream is, OutputStream os) throws IOException;
+    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException;
   }
   
   private class get implements Command
   {
-    /**
-     * @see de.willuhn.jameica.messaging.server.TcpServiceImpl.Command#exec(de.willuhn.jameica.messaging.rmi.MessageService, java.lang.String, java.io.InputStream, java.io.OutputStream)
-     */
-    public void exec(MessageService service, String name, InputStream is, OutputStream os) throws IOException
+    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException
     {
       service.get(name,os);
     }
@@ -322,10 +319,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
   private class put implements Command
   {
-    /**
-     * @see de.willuhn.jameica.messaging.server.TcpServiceImpl.Command#exec(de.willuhn.jameica.messaging.rmi.MessageService, java.lang.String, java.io.InputStream, java.io.OutputStream)
-     */
-    public void exec(MessageService service, String name, InputStream is, OutputStream os) throws IOException
+    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException
     {
       String uuid = service.put(name,is,null);
       os.write(uuid.getBytes());
@@ -335,10 +329,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
   private class delete implements Command
   {
-    /**
-     * @see de.willuhn.jameica.messaging.server.TcpServiceImpl.Command#exec(de.willuhn.jameica.messaging.rmi.MessageService, java.lang.String, java.io.InputStream, java.io.OutputStream)
-     */
-    public void exec(MessageService service, String name, InputStream is, OutputStream os) throws IOException
+    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException
     {
       try
       {
@@ -356,6 +347,9 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 /**********************************************************************
  * $Log: TcpServiceImpl.java,v $
+ * Revision 1.10  2008/10/07 00:11:09  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.9  2008/10/06 23:41:55  willuhn
  * @N Support fuer Properties in Messages
  *
