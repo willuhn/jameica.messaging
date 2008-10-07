@@ -1,7 +1,7 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/TcpServiceImpl.java,v $
- * $Revision: 1.10 $
- * $Date: 2008/10/07 00:11:09 $
+ * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorTcpServiceImpl.java,v $
+ * $Revision: 1.1 $
+ * $Date: 2008/10/07 23:03:34 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -26,10 +26,10 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
 
 import de.willuhn.jameica.messaging.LookupService;
+import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
-import de.willuhn.jameica.messaging.rmi.ArchiveService;
-import de.willuhn.jameica.messaging.rmi.LocalMessageService;
-import de.willuhn.jameica.messaging.rmi.TcpService;
+import de.willuhn.jameica.messaging.rmi.ConnectorTcpService;
+import de.willuhn.jameica.messaging.rmi.StorageService;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.jameica.system.Settings;
 import de.willuhn.logging.Level;
@@ -37,9 +37,9 @@ import de.willuhn.logging.Logger;
 
 
 /**
- * Implementierung des TCP-Services.
+ * Implementierung des TCP-Connectors.
  */
-public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
+public class ConnectorTcpServiceImpl extends UnicastRemoteObject implements ConnectorTcpService
 {
   private Worker worker = null;
   private Hashtable commands = new Hashtable();
@@ -48,12 +48,13 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
   /**
    * @throws RemoteException
    */
-  public TcpServiceImpl() throws RemoteException
+  public ConnectorTcpServiceImpl() throws RemoteException
   {
     super();
-    this.commands.put("get", new get());
-    this.commands.put("put",new put());
-    this.commands.put("delete",new delete());
+    this.commands.put("get",   new Get());
+    this.commands.put("put",   new Put());
+    this.commands.put("next",  new Next());
+    this.commands.put("delete",new Delete());
   }
 
   /**
@@ -160,7 +161,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
       this.running = true;
       
       String url  = (address != null ? address.getHostName() : Application.getCallback().getHostname()) + ":" + port;
-      LookupService.register("tcp:" + Plugin.class.getName() + "." + TcpServiceImpl.this.getName(),url);
+      LookupService.register("tcp:" + Plugin.class.getName() + "." + getName(),url);
     }
     
     /**
@@ -171,7 +172,7 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
       this.running = false;
       try
       {
-        LookupService.unRegister("tcp:" + Plugin.class.getName() + "." + TcpServiceImpl.this.getName());
+        LookupService.unRegister("tcp:" + Plugin.class.getName() + "." + getName());
       }
       catch (Exception e)
       {
@@ -248,25 +249,23 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
         while (count<max);
         ////////////////////////////////////////////////////////////////////////
         String command = new String(buf).trim();
-        if (command.length() == 0 || !command.matches("[a-zA-Z]{1,30}:[a-zA-Z]{3,10} .*"))
+        if (command.length() == 0 || !command.matches("[a-zA-Z]{1,30} .*"))
         {
           Logger.warn("invalid command: " + command);
           return;
         }
         
-        String service = command.substring(0,command.indexOf(':'));
-        String cmd     = command.substring(command.indexOf(':')+1,command.indexOf(' '));
-        String name    = command.substring(command.indexOf(' ')+1);
+        String cmd  = command.substring(0,command.indexOf(' ')).toLowerCase();
+        String data = command.substring(command.indexOf(' ')+1);
 
         Command c = (Command) commands.get(cmd);
         if (c == null)
         {
-          Logger.warn("invalid command: " + command);
+          Logger.warn("unknown command: " + cmd);
           return;
         }
 
-        LocalMessageService ms = (LocalMessageService) Application.getServiceFactory().lookup(Plugin.class,service);
-        c.exec(ms,name,is,os);
+        c.exec(data,is,os);
         os.flush();
       }
       catch (IOException e)
@@ -300,44 +299,69 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
   public static interface Command
   {
     /**
-     * @param service
-     * @param name
+     * @param data
      * @param is
      * @param os
-     * @throws IOException
+     * @throws Exception
      */
-    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException;
+    public void exec(String data, InputStream is, OutputStream os) throws Exception;
   }
   
-  private class get implements Command
+  private class Get implements Command
   {
-    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException
+    public void exec(String data, InputStream is, OutputStream os) throws Exception
     {
-      service.get(name,os);
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      MessageData message = new MessageData();
+      message.setUuid(data);
+      message.setOutputStream(os);
+      service.get(message);
     }
   }
 
-  private class put implements Command
+  private class Put implements Command
   {
-    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException
+    public void exec(String data, InputStream is, OutputStream os) throws Exception
     {
-      String uuid = service.put(name,is,null);
-      os.write(uuid.getBytes());
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      MessageData message = new MessageData();
+      message.setInputStream(is);
+      service.put(data,message);
+
+      // Erzeugte UUID zurueckliefern
+      os.write(message.getUuid().getBytes());
       os.write("\r\n".getBytes());
     }
   }
 
-  private class delete implements Command
+  private class Delete implements Command
   {
-    public void exec(LocalMessageService service, String name, InputStream is, OutputStream os) throws IOException
+    public void exec(String data, InputStream is, OutputStream os) throws Exception
     {
-      try
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      MessageData message = new MessageData();
+      message.setUuid(data);
+      service.delete(message);
+    }
+  }
+
+  private class Next implements Command
+  {
+    public void exec(String data, InputStream is, OutputStream os) throws Exception
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      
+      // 1. UUID ermitteln 
+      String uuid = service.next(data);
+      if (uuid != null)
       {
-        ((ArchiveService)service).delete(name);
-      }
-      catch (ClassCastException e)
-      {
-        Logger.error("command \"delete\" is only allowed for archive services");
+        // 2. Datei abrufen
+        Get get = (Get) commands.get("get");
+        get.exec(uuid,is,os);
+        
+        // 3. Datei loeschen
+        Delete delete = (Delete) commands.get("delete");
+        delete.exec(uuid,is,os);
       }
     }
   }
@@ -346,7 +370,10 @@ public class TcpServiceImpl extends UnicastRemoteObject implements TcpService
 
 
 /**********************************************************************
- * $Log: TcpServiceImpl.java,v $
+ * $Log: ConnectorTcpServiceImpl.java,v $
+ * Revision 1.1  2008/10/07 23:03:34  willuhn
+ * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
+ *
  * Revision 1.10  2008/10/07 00:11:09  willuhn
  * *** empty log message ***
  *

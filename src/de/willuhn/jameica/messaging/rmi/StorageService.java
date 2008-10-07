@@ -1,7 +1,7 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/Attic/StorageEngine.java,v $
- * $Revision: 1.3 $
- * $Date: 2008/10/06 23:30:45 $
+ * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/StorageService.java,v $
+ * $Revision: 1.1 $
+ * $Date: 2008/10/07 23:03:34 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -15,20 +15,28 @@ package de.willuhn.jameica.messaging.rmi;
 
 import java.io.IOException;
 
-import de.willuhn.jameica.messaging.server.Message;
+import de.willuhn.datasource.Service;
+import de.willuhn.jameica.messaging.MessageData;
 
 /**
  * Interface fuer den Storage-Service.
  * Damit kann die Queue verschiedene Backends zum Speichern der Messages nutzen.
  */
-public interface StorageEngine
+public interface StorageService extends Service
 {
   /**
    * Ruft die Nachricht ab.
    * @param message die Nachricht.
    * @throws IOException
    */
-  public void get(Message message) throws IOException;
+  public void get(MessageData message) throws IOException;
+
+  /**
+   * Ruft nur die Properties der Nachricht ab.
+   * @param message die Nachricht.
+   * @throws IOException
+   */
+  public void getProperties(MessageData message) throws IOException;
 
   /**
    * Liefert die UUID der naechsten Nachricht in diesem Channel oder null.
@@ -43,7 +51,7 @@ public interface StorageEngine
    * @param message die Message.
    * @throws IOException
    */
-  public void delete(Message message) throws IOException;
+  public void delete(MessageData message) throws IOException;
 
   /**
    * Uebergibt eine Nachricht an den Speicher.
@@ -53,12 +61,15 @@ public interface StorageEngine
    * @param message die Nachricht.
    * @throws IOException
    */
-  public void put(String channel, Message message) throws IOException;
+  public void put(String channel, MessageData message) throws IOException;
 }
 
 
 /*********************************************************************
- * $Log: StorageEngine.java,v $
+ * $Log: StorageService.java,v $
+ * Revision 1.1  2008/10/07 23:03:34  willuhn
+ * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
+ *
  * Revision 1.3  2008/10/06 23:30:45  willuhn
  * @N Support fuer Properties in Messages
  *

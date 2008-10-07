@@ -1,7 +1,7 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/Attic/MessageService.java,v $
- * $Revision: 1.3 $
- * $Date: 2008/10/07 00:11:09 $
+ * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/ConnectorXmlRpcService.java,v $
+ * $Revision: 1.1 $
+ * $Date: 2008/10/07 23:03:34 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -19,10 +19,27 @@ import java.util.Map;
 import de.willuhn.datasource.Service;
 
 /**
- * Basis-Interface fuer einen Message-Service.
+ * XML-RPC-tauglicher Connector.
  */
-public interface MessageService extends Service
+public interface ConnectorXmlRpcService extends Service
 {
+  /**
+   * Loescht die Nachricht mit der angegebenen UUID.
+   * @param uuid ID der Nachricht.
+   * @return true, wenn die Nachricht gefunden und geloescht wurde,
+   * false, wenn die Nachricht nicht existierte.
+   * @throws RemoteException
+   */
+  public boolean delete(String uuid) throws RemoteException;
+
+  /**
+   * Liefert die naechste UUID aus dem Channel.
+   * @param channel Name des Channel.
+   * @return UUID oder NULL, wenn keine Nachricht im Channel vorliegt.
+   * @throws RemoteException
+   */
+  public String next(String channel) throws RemoteException;
+  
   /**
    * Uebergibt eine Nachricht an die Queue.
    * @param channel Name des Channels. 
@@ -41,19 +58,20 @@ public interface MessageService extends Service
    * @throws RemoteException
    */
   public byte[] get(String uuid) throws RemoteException;
+
+  /**
+   * Liefert die Properties zur angegebenen UUID.
+   * @param uuid ID der Nachricht.
+   * @return die Properties oder <code>null</code> wenn die Nachricht nicht gefunden wurde.
+   * @throws RemoteException
+   */
+  public Map getProperties(String uuid) throws RemoteException;
 }
 
 
 /*********************************************************************
- * $Log: MessageService.java,v $
- * Revision 1.3  2008/10/07 00:11:09  willuhn
- * *** empty log message ***
- *
- * Revision 1.2  2008/10/06 23:41:55  willuhn
- * @N Support fuer Properties in Messages
- *
- * Revision 1.1  2008/01/16 16:44:47  willuhn
- * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
- * @N Doppel-Funktion des Systems als Archiv und Queue
+ * $Log: ConnectorXmlRpcService.java,v $
+ * Revision 1.1  2008/10/07 23:03:34  willuhn
+ * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
  *
  **********************************************************************/

@@ -1,7 +1,7 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/Attic/TcpService.java,v $
+ * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/ConnectorTcpService.java,v $
  * $Revision: 1.1 $
- * $Date: 2007/12/13 23:31:38 $
+ * $Date: 2008/10/07 23:03:34 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -17,16 +17,19 @@ import de.willuhn.datasource.Service;
 
 
 /**
- * Stellt die Queue ueber einen "plain" TCP-Socket zur Verfuegung.
+ * Connector fuer den Zugriff via Plain TCP (z.Bsp. Telnet).
  */
-public interface TcpService extends Service
+public interface ConnectorTcpService extends Service
 {
 
 }
 
 
 /**********************************************************************
- * $Log: TcpService.java,v $
+ * $Log: ConnectorTcpService.java,v $
+ * Revision 1.1  2008/10/07 23:03:34  willuhn
+ * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
+ *
  * Revision 1.1  2007/12/13 23:31:38  willuhn
  * @N initial import
  *

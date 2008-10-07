@@ -1,4 +1,4 @@
-package de.willuhn.jameica.messaging.server;
+package de.willuhn.jameica.messaging;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,29 +9,29 @@ import java.util.Map;
  * Bean fuer eine einzelne Message.
  * Wird nur serverseitig verwendet.
  */
-public class Message
+public class MessageData
 {
   private InputStream inputStream   = null;
   private OutputStream outputStream = null;
   private String uuid               = null;
-  private Map attributes            = null;
+  private Map properties            = null;
   
   /**
    * Liefert optionale Attribute fuer die Message.
    * @return optionale Attribute.
    */
-  public Map getAttributes()
+  public Map getProperties()
   {
-    return attributes;
+    return properties;
   }
   
   /**
    * Speichert optionale Attribute fuer die Message.
-   * @param attributes
+   * @param properties
    */
-  public void setAttributes(Map attributes)
+  public void setProperties(Map properties)
   {
-    this.attributes = attributes;
+    this.properties = properties;
   }
   
   /**
@@ -92,7 +92,10 @@ public class Message
 
 
 /**********************************************************************
- * $Log: Message.java,v $
+ * $Log: MessageData.java,v $
+ * Revision 1.1  2008/10/07 23:03:34  willuhn
+ * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
+ *
  * Revision 1.1  2008/10/06 23:30:45  willuhn
  * @N Support fuer Properties in Messages
  *

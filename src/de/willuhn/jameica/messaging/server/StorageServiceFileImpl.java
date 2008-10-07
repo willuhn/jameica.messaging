@@ -1,7 +1,7 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/Attic/StorageEngineFileImpl.java,v $
- * $Revision: 1.8 $
- * $Date: 2008/10/06 23:30:45 $
+ * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
+ * $Revision: 1.1 $
+ * $Date: 2008/10/07 23:03:34 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -22,6 +22,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,26 +34,40 @@ import java.util.Properties;
 import java.util.UUID;
 
 import de.willuhn.io.FileFinder;
+import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
-import de.willuhn.jameica.messaging.rmi.StorageEngine;
+import de.willuhn.jameica.messaging.rmi.StorageService;
 import de.willuhn.jameica.plugin.PluginResources;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.jameica.system.Settings;
 import de.willuhn.logging.Logger;
 
 /**
- * Implementierung einer Storage-Engine, die direkt im Dateisystem speichert.
+ * Implementierung eines Storage-Service, die direkt im Dateisystem speichert.
  */
-public class StorageEngineFileImpl implements StorageEngine
+public class StorageServiceFileImpl extends UnicastRemoteObject implements StorageService
 {
+  /**
+   * @throws RemoteException
+   */
+  public StorageServiceFileImpl() throws RemoteException
+  {
+    super();
+  }
+
+  private boolean started = false;
+  
   // Maximal-Anzahl von Nachrichten pro Channel
   private final static int MAX_MESSAGES = 10000;
 
   /**
-   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#get(de.willuhn.jameica.messaging.server.Message)
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#get(de.willuhn.jameica.messaging.MessageData)
    */
-  public synchronized void get(Message message) throws IOException
+  public synchronized void get(MessageData message) throws IOException
   {
+    if (!this.isStarted())
+      throw new IOException("service not started");
+    
     if (message == null)
       throw new IOException("no message given");
     
@@ -62,11 +78,11 @@ public class StorageEngineFileImpl implements StorageEngine
     String uuid = message.getUuid();
     File f = find(uuid);
 
+    Logger.debug("reading message [UUID: " + uuid + "]");
+
     InputStream is = null;
-    InputStream isProps = null;
     try
     {
-      Logger.debug("reading message [UUID: " + uuid + "]");
       is = new BufferedInputStream(new FileInputStream(f));
       long started = System.currentTimeMillis();
 
@@ -81,17 +97,8 @@ public class StorageEngineFileImpl implements StorageEngine
       }
       os.flush(); // Stellt sicher, dass alles geschrieben wurde, bevor wir den InputStream schliessen
       
-      //////////////////////////////////////////////////////////////////////////
-      // Checken, ob Properties existieren
-      File props = new File(f.getAbsolutePath() + ".properties");
-      if (props.exists() && props.isFile() && props.canRead())
-      {
-        isProps = new BufferedInputStream(new FileInputStream(props));
-        Properties p = new Properties();
-        p.load(isProps);
-        message.setAttributes((Map)p.clone());
-      }
-      //////////////////////////////////////////////////////////////////////////
+      getProperties(message);
+      
       Logger.info("message [UUID: " + uuid + " sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
     }
     finally
@@ -107,11 +114,44 @@ public class StorageEngineFileImpl implements StorageEngine
           Logger.error("error while closing file",e);
         }
       }
-      if (isProps != null)
+    }
+  }
+  
+  /**
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#getProperties(de.willuhn.jameica.messaging.MessageData)
+   */
+  public void getProperties(MessageData message) throws IOException
+  {
+    if (!this.isStarted())
+      throw new IOException("service not started");
+
+    if (message == null)
+      throw new IOException("no message given");
+    
+    String uuid = message.getUuid();
+    File f = find(uuid);
+
+    Logger.debug("reading message properties [UUID: " + uuid + "]");
+
+    InputStream is = null;
+    try
+    {
+      File props = new File(f.getAbsolutePath() + ".properties");
+      if (!props.exists() || !props.isFile() || !props.canRead())
+        return; // Keine Properties vorhanden
+
+      is = new BufferedInputStream(new FileInputStream(props));
+      Properties p = new Properties();
+      p.load(is);
+      message.setProperties((Map)p.clone());
+    }
+    finally
+    {
+      if (is != null)
       {
         try
         {
-          isProps.close();
+          is.close();
         }
         catch (Exception e)
         {
@@ -121,11 +161,15 @@ public class StorageEngineFileImpl implements StorageEngine
     }
   }
 
+
   /**
-   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#next(java.lang.String)
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#next(java.lang.String)
    */
   public synchronized String next(String channel) throws IOException
   {
+    if (!this.isStarted())
+      throw new IOException("service not started");
+
     File dir = new File(getWorkdir().getAbsolutePath(),escape(channel));
     if (!dir.exists())
       throw new IOException("channel does not exist");
@@ -157,10 +201,13 @@ public class StorageEngineFileImpl implements StorageEngine
   }
   
   /**
-   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#delete(de.willuhn.jameica.messaging.server.Message)
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#delete(de.willuhn.jameica.messaging.MessageData)
    */
-  public synchronized void delete(Message message) throws IOException
+  public synchronized void delete(MessageData message) throws IOException
   {
+    if (!this.isStarted())
+      throw new IOException("service not started");
+
     if (message == null)
       throw new IOException("no message given");
 
@@ -196,10 +243,13 @@ public class StorageEngineFileImpl implements StorageEngine
   }
   
   /**
-   * @see de.willuhn.jameica.messaging.rmi.StorageEngine#put(java.lang.String, de.willuhn.jameica.messaging.server.Message)
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#put(java.lang.String, de.willuhn.jameica.messaging.MessageData)
    */
-  public synchronized void put(String channel, Message message) throws IOException
+  public synchronized void put(String channel, MessageData message) throws IOException
   {
+    if (!this.isStarted())
+      throw new IOException("service not started");
+
     if (message == null)
       throw new IOException("no message given");
     
@@ -239,7 +289,7 @@ public class StorageEngineFileImpl implements StorageEngine
       
       //////////////////////////////////////////////////////////////////////////
       // Ggf. noch Properties speichern
-      Map attributes = message.getAttributes();
+      Map attributes = message.getProperties();
       if (attributes != null && attributes.size() > 0)
       {
         osProps = new BufferedOutputStream(new FileOutputStream(new File(target.getAbsolutePath() + ".properties")));
@@ -348,11 +398,63 @@ public class StorageEngineFileImpl implements StorageEngine
     return name;
   }
 
+  /**
+   * @see de.willuhn.datasource.Service#getName()
+   */
+  public String getName() throws RemoteException
+  {
+    return "file-storage-service";
+  }
+
+  /**
+   * @see de.willuhn.datasource.Service#isStartable()
+   */
+  public boolean isStartable() throws RemoteException
+  {
+    return !isStarted();
+  }
+
+  /**
+   * @see de.willuhn.datasource.Service#isStarted()
+   */
+  public boolean isStarted() throws RemoteException
+  {
+    return started;
+  }
+
+  /**
+   * @see de.willuhn.datasource.Service#start()
+   */
+  public void start() throws RemoteException
+  {
+    if (this.isStarted())
+    {
+      Logger.warn("service allready started, skipping request");
+      return;
+    }
+    this.started = true;
+  }
+
+  /**
+   * @see de.willuhn.datasource.Service#stop(boolean)
+   */
+  public void stop(boolean arg0) throws RemoteException
+  {
+    if (this.isStarted())
+    {
+      Logger.warn("service not started, skipping request");
+      return;
+    }
+    this.started = false;
+  }
 }
 
 
 /*********************************************************************
- * $Log: StorageEngineFileImpl.java,v $
+ * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.1  2008/10/07 23:03:34  willuhn
+ * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
+ *
  * Revision 1.8  2008/10/06 23:30:45  willuhn
  * @N Support fuer Properties in Messages
  *
