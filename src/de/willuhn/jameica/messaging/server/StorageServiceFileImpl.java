@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/07 23:03:34 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/07 23:45:41 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,16 +44,8 @@ import de.willuhn.logging.Logger;
 /**
  * Implementierung eines Storage-Service, die direkt im Dateisystem speichert.
  */
-public class StorageServiceFileImpl extends UnicastRemoteObject implements StorageService
+public class StorageServiceFileImpl implements StorageService
 {
-  /**
-   * @throws RemoteException
-   */
-  public StorageServiceFileImpl() throws RemoteException
-  {
-    super();
-  }
-
   private boolean started = false;
   
   // Maximal-Anzahl von Nachrichten pro Channel
@@ -452,6 +443,9 @@ public class StorageServiceFileImpl extends UnicastRemoteObject implements Stora
 
 /*********************************************************************
  * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.2  2008/10/07 23:45:41  willuhn
+ * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
+ *
  * Revision 1.1  2008/10/07 23:03:34  willuhn
  * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
  *

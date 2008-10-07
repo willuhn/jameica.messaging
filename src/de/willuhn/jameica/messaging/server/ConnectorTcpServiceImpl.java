@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorTcpServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/07 23:03:34 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/07 23:45:41 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -22,7 +22,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
 
 import de.willuhn.jameica.messaging.LookupService;
@@ -39,7 +38,7 @@ import de.willuhn.logging.Logger;
 /**
  * Implementierung des TCP-Connectors.
  */
-public class ConnectorTcpServiceImpl extends UnicastRemoteObject implements ConnectorTcpService
+public class ConnectorTcpServiceImpl implements ConnectorTcpService
 {
   private Worker worker = null;
   private Hashtable commands = new Hashtable();
@@ -48,9 +47,8 @@ public class ConnectorTcpServiceImpl extends UnicastRemoteObject implements Conn
   /**
    * @throws RemoteException
    */
-  public ConnectorTcpServiceImpl() throws RemoteException
+  public ConnectorTcpServiceImpl()
   {
-    super();
     this.commands.put("get",   new Get());
     this.commands.put("put",   new Put());
     this.commands.put("next",  new Next());
@@ -371,6 +369,9 @@ public class ConnectorTcpServiceImpl extends UnicastRemoteObject implements Conn
 
 /**********************************************************************
  * $Log: ConnectorTcpServiceImpl.java,v $
+ * Revision 1.2  2008/10/07 23:45:41  willuhn
+ * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
+ *
  * Revision 1.1  2008/10/07 23:03:34  willuhn
  * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
  *

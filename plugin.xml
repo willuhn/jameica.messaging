@@ -16,6 +16,7 @@
     <service name="storage"          depends=""        autostart="true" class="de.willuhn.jameica.messaging.rmi.StorageService" />
     <service name="connector.tcp"    depends="storage" autostart="true" class="de.willuhn.jameica.messaging.rmi.ConnectorTcpService" />
     <service name="connector.xmlrpc" depends="storage" autostart="true" class="de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService" />
+    <service name="connector.rest"   depends="storage" autostart="true" class="de.willuhn.jameica.messaging.rmi.ConnectorRestService" />
   </services>
 </plugin>
 
