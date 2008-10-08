@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.5 $
- * $Date: 2008/10/08 22:07:15 $
+ * $Revision: 1.6 $
+ * $Date: 2008/10/08 22:08:17 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -42,7 +42,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
   /**
    * Pattern fuer das NEXT-Kommando.
    */
-  private final static String PATTERN_NEXT = "/message/next";
+  private final static String PATTERN_NEXT = "/message/next/(.*)";
 
   /**
    * Pattern fuer das DELETE-Kommando.
@@ -156,7 +156,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
- * Revision 1.5  2008/10/08 22:07:15  willuhn
+ * Revision 1.6  2008/10/08 22:08:17  willuhn
  * *** empty log message ***
  *
  * Revision 1.4  2008/10/08 22:05:52  willuhn
