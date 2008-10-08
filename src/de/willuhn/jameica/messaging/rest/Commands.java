@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rest/Commands.java,v $
- * $Revision: 1.4 $
- * $Date: 2008/10/08 21:38:38 $
+ * $Revision: 1.5 $
+ * $Date: 2008/10/08 22:05:52 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -75,6 +75,7 @@ public class Commands
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
       MessageData data = new MessageData();
       data.setInputStream(request.getInputStream());
+      data.setProperties(request.getParameterMap());
       service.put(channel,data);
       response.getWriter().print(data.getUuid());
     }
@@ -89,11 +90,64 @@ public class Commands
     }
   }
 
+  /**
+   * Liefert die naechste UUID aus dem Channel.
+   * @param channel Channel.
+   * @throws IOException
+   */
+  public void next(String channel) throws IOException
+  {
+    try
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      String uuid = service.next(channel);
+      if (uuid != null)
+        response.getWriter().print(uuid);
+    }
+    catch (IOException e)
+    {
+      throw e;
+    }
+    catch (Exception e2)
+    {
+      Logger.error("unable to fetch next uuid from channel: " + channel,e2);
+      throw new IOException("unable to fetch next uuid from channel: " + channel + " - " + e2.getMessage());
+    }
+  }
+
+  /**
+   * Loescht die Datei mit der UUID aus dem Archiv.
+   * @param uuid UUID.
+   * @throws IOException
+   */
+  public void delete(String uuid) throws IOException
+  {
+    try
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      MessageData data = new MessageData();
+      data.setUuid(uuid);
+      service.delete(data);
+    }
+    catch (IOException e)
+    {
+      throw e;
+    }
+    catch (Exception e2)
+    {
+      Logger.error("unable to delete file, uuid: " + uuid,e2);
+      throw new IOException("unable to delete file, channel: " + uuid + " - " + e2.getMessage());
+    }
+  }
+
 }
 
 
 /*********************************************************************
  * $Log: Commands.java,v $
+ * Revision 1.5  2008/10/08 22:05:52  willuhn
+ * @N REST-Kommandos vervollstaendigt
+ *
  * Revision 1.4  2008/10/08 21:38:38  willuhn
  * @C Nur noch zwei Annotations "Request" und "Response"
  *

@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2008/10/08 17:55:11 $
+ * $Revision: 1.4 $
+ * $Date: 2008/10/08 22:05:52 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -32,14 +32,24 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
   /**
    * Pattern fuer das GET-Kommando.
    */
-  private final static String PATTERN_GET = "/messaging/get/(.*)";
+  private final static String PATTERN_GET = "/message/get/(.*)";
   
   /**
    * Pattern fuer das PUT-Kommando.
    */
-  private final static String PATTERN_PUT = "/messaging/put/(.*)";
+  private final static String PATTERN_PUT = "/message/put/(.*)";
 
+  /**
+   * Pattern fuer das NEXT-Kommando.
+   */
+  private final static String PATTERN_NEXT = "/message/next/(.*)";
 
+  /**
+   * Pattern fuer das DELETE-Kommando.
+   */
+  private final static String PATTERN_DELETE = "/message/delete/(.*)";
+
+  
   private RestConsumer consumer = null;
 
   /**
@@ -96,6 +106,8 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
     {
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_GET,null));
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_PUT,null));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_NEXT,null));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_DELETE,null));
     }
     finally
     {
@@ -133,6 +145,8 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
     {
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_GET,Commands.class.getName() + ".get"));
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_PUT,Commands.class.getName() + ".put"));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_NEXT,Commands.class.getName() + ".next"));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_DELETE,Commands.class.getName() + ".delete"));
     }
     
   }
@@ -142,6 +156,9 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.4  2008/10/08 22:05:52  willuhn
+ * @N REST-Kommandos vervollstaendigt
+ *
  * Revision 1.3  2008/10/08 17:55:11  willuhn
  * @N SOAP-Connector (in progress)
  *
