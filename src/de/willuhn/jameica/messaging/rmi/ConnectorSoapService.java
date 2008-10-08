@@ -1,7 +1,7 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/services/Attic/ConnectorSoapService.java,v $
+ * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/ConnectorSoapService.java,v $
  * $Revision: 1.1 $
- * $Date: 2008/10/08 17:55:11 $
+ * $Date: 2008/10/08 23:18:38 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -11,10 +11,10 @@
  *
  **********************************************************************/
 
-package de.willuhn.jameica.messaging.services;
+package de.willuhn.jameica.messaging.rmi;
 
 import java.rmi.RemoteException;
-import java.util.Map;
+import java.util.HashMap;
 
 import javax.jws.WebParam;
 import javax.jws.WebResult;
@@ -25,7 +25,7 @@ import de.willuhn.datasource.Service;
 /**
  * SOAP-tauglicher Connector.
  */
-@WebService
+@WebService(name="Message")
 public interface ConnectorSoapService extends Service
 {
   /**
@@ -54,7 +54,7 @@ public interface ConnectorSoapService extends Service
    * @return eine UUID, anhand derer die Message auch identifiziert werden kann.
    * @throws RemoteException
    */
-  public @WebResult(name="uuid") String put(@WebParam(name="channel") String channel, @WebParam(name="data") byte[] data, @WebParam(name="properties") Map properties) throws RemoteException;
+  public @WebResult(name="uuid") String put(@WebParam(name="channel") String channel, @WebParam(name="data") byte[] data, @WebParam(name="properties") HashMap properties) throws RemoteException;
   
   /**
    * Liefert die Nachricht mit der angegebenen UUID.
@@ -70,12 +70,16 @@ public interface ConnectorSoapService extends Service
    * @return die Properties oder <code>null</code> wenn die Nachricht nicht gefunden wurde.
    * @throws RemoteException
    */
-  public @WebResult(name="properties") Map getProperties(@WebParam(name="uuid") String uuid) throws RemoteException;
+  public @WebResult(name="properties") HashMap getProperties(@WebParam(name="uuid") String uuid) throws RemoteException;
 }
 
 
 /*********************************************************************
  * $Log: ConnectorSoapService.java,v $
+ * Revision 1.1  2008/10/08 23:18:38  willuhn
+ * @B bugfixing
+ * @N SoapTest
+ *
  * Revision 1.1  2008/10/08 17:55:11  willuhn
  * @N SOAP-Connector (in progress)
  *

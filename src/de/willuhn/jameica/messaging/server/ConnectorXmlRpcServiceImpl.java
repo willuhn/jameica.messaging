@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorXmlRpcServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/08 17:55:11 $
+ * $Revision: 1.3 $
+ * $Date: 2008/10/08 23:18:39 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -16,11 +16,9 @@ package de.willuhn.jameica.messaging.server;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.rmi.RemoteException;
+import java.util.HashMap;
 import java.util.Map;
 
-import javax.jws.WebService;
-
-import de.willuhn.jameica.messaging.LookupService;
 import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService;
@@ -30,9 +28,8 @@ import de.willuhn.logging.Logger;
 
 
 /**
- * Implementierung des XML-RPC- und SOAP-Connectors.
+ * Implementierung des XML-RPC-Connectors.
  */
-@WebService(endpointInterface="de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService")
 public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
 {
   private boolean started = false;
@@ -104,7 +101,7 @@ public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
   /**
    * @see de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService#getProperties(java.lang.String)
    */
-  public Map getProperties(String uuid) throws RemoteException
+  public HashMap getProperties(String uuid) throws RemoteException
   {
     if (!this.isStarted())
       throw new RemoteException("service not started");
@@ -115,7 +112,11 @@ public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
       MessageData message = new MessageData();
       message.setUuid(uuid);
       service.getProperties(message);
-      return message.getProperties();
+      Map map = message.getProperties();
+      if (map == null)
+        return null;
+      
+      return new HashMap(map);
     }
     catch (RemoteException re)
     {
@@ -151,9 +152,9 @@ public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
   }
 
   /**
-   * @see de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService#put(java.lang.String, byte[], java.util.Map)
+   * @see de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService#put(java.lang.String, byte[], java.util.HashMap)
    */
-  public String put(String channel, byte[] data, Map properties)
+  public String put(String channel, byte[] data, HashMap properties)
       throws RemoteException
   {
     if (!this.isStarted())
@@ -227,18 +228,7 @@ public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
       Logger.warn("service not started, skipping request");
       return;
     }
-    try
-    {
-      LookupService.unRegister("tcp:" + Plugin.class.getName() + "." + getName());
-    }
-    catch (Exception e)
-    {
-      Logger.error("unable to unregister multicast lookup",e);
-    }
-    finally
-    {
-      this.started = false;
-    }
+    this.started = false;
   }
 
 }
@@ -246,6 +236,10 @@ public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
 
 /**********************************************************************
  * $Log: ConnectorXmlRpcServiceImpl.java,v $
+ * Revision 1.3  2008/10/08 23:18:39  willuhn
+ * @B bugfixing
+ * @N SoapTest
+ *
  * Revision 1.2  2008/10/08 17:55:11  willuhn
  * @N SOAP-Connector (in progress)
  *

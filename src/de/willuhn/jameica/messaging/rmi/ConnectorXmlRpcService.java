@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/ConnectorXmlRpcService.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/07 23:03:34 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/08 23:18:38 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -14,7 +14,7 @@
 package de.willuhn.jameica.messaging.rmi;
 
 import java.rmi.RemoteException;
-import java.util.Map;
+import java.util.HashMap;
 
 import de.willuhn.datasource.Service;
 
@@ -49,7 +49,7 @@ public interface ConnectorXmlRpcService extends Service
    * @return eine UUID, anhand derer die Message auch identifiziert werden kann.
    * @throws RemoteException
    */
-  public String put(String channel, byte[] data, Map properties) throws RemoteException;
+  public String put(String channel, byte[] data, HashMap properties) throws RemoteException;
   
   /**
    * Liefert die Nachricht mit der angegebenen UUID.
@@ -65,12 +65,16 @@ public interface ConnectorXmlRpcService extends Service
    * @return die Properties oder <code>null</code> wenn die Nachricht nicht gefunden wurde.
    * @throws RemoteException
    */
-  public Map getProperties(String uuid) throws RemoteException;
+  public HashMap getProperties(String uuid) throws RemoteException;
 }
 
 
 /*********************************************************************
  * $Log: ConnectorXmlRpcService.java,v $
+ * Revision 1.2  2008/10/08 23:18:38  willuhn
+ * @B bugfixing
+ * @N SoapTest
+ *
  * Revision 1.1  2008/10/07 23:03:34  willuhn
  * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
  *

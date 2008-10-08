@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.6 $
- * $Date: 2008/10/08 22:08:17 $
+ * $Revision: 1.7 $
+ * $Date: 2008/10/08 23:18:39 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -104,6 +104,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
     try
     {
+      // REST-Kommandos deregistrieren
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_GET,null));
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_PUT,null));
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_NEXT,null));
@@ -111,7 +112,9 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
     }
     finally
     {
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.ready").unRegisterMessageConsumer(this.consumer);
+      // Wir wollen kuenftig auch nicht mehr benachrichtigt
+      // werden, wenn der REST-Service startet
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.start").unRegisterMessageConsumer(this.consumer);
       this.consumer = null;
     }
   }
@@ -156,6 +159,10 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.7  2008/10/08 23:18:39  willuhn
+ * @B bugfixing
+ * @N SoapTest
+ *
  * Revision 1.6  2008/10/08 22:08:17  willuhn
  * *** empty log message ***
  *
