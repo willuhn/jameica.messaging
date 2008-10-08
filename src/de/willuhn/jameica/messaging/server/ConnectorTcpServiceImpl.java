@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorTcpServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/07 23:45:41 $
+ * $Revision: 1.3 $
+ * $Date: 2008/10/08 17:55:11 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -45,7 +45,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
   
 
   /**
-   * @throws RemoteException
+   * ct
    */
   public ConnectorTcpServiceImpl()
   {
@@ -307,6 +307,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
   
   private class Get implements Command
   {
+    /**
+     * @see de.willuhn.jameica.messaging.server.ConnectorTcpServiceImpl.Command#exec(java.lang.String, java.io.InputStream, java.io.OutputStream)
+     */
     public void exec(String data, InputStream is, OutputStream os) throws Exception
     {
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
@@ -319,6 +322,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
   private class Put implements Command
   {
+    /**
+     * @see de.willuhn.jameica.messaging.server.ConnectorTcpServiceImpl.Command#exec(java.lang.String, java.io.InputStream, java.io.OutputStream)
+     */
     public void exec(String data, InputStream is, OutputStream os) throws Exception
     {
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
@@ -334,6 +340,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
   private class Delete implements Command
   {
+    /**
+     * @see de.willuhn.jameica.messaging.server.ConnectorTcpServiceImpl.Command#exec(java.lang.String, java.io.InputStream, java.io.OutputStream)
+     */
     public void exec(String data, InputStream is, OutputStream os) throws Exception
     {
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
@@ -345,6 +354,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
   private class Next implements Command
   {
+    /**
+     * @see de.willuhn.jameica.messaging.server.ConnectorTcpServiceImpl.Command#exec(java.lang.String, java.io.InputStream, java.io.OutputStream)
+     */
     public void exec(String data, InputStream is, OutputStream os) throws Exception
     {
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
@@ -369,6 +381,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
 /**********************************************************************
  * $Log: ConnectorTcpServiceImpl.java,v $
+ * Revision 1.3  2008/10/08 17:55:11  willuhn
+ * @N SOAP-Connector (in progress)
+ *
  * Revision 1.2  2008/10/07 23:45:41  willuhn
  * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
  *

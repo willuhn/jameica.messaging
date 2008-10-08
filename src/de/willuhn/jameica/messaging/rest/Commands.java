@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rest/Commands.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/08 16:01:40 $
+ * $Revision: 1.3 $
+ * $Date: 2008/10/08 17:55:11 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -16,7 +16,6 @@ package de.willuhn.jameica.messaging.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 
 import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
@@ -35,9 +34,6 @@ public class Commands
   @de.willuhn.jameica.webadmin.rest.annotation.OutputStream
   private OutputStream os = null;
   
-  @de.willuhn.jameica.webadmin.rest.annotation.Writer
-  private PrintWriter writer = null;
-
   /**
    * Liefert die Datei mit der angegebenen UUID.
    * @param uuid UUID.
@@ -77,7 +73,7 @@ public class Commands
       MessageData data = new MessageData();
       data.setInputStream(is);
       service.put(channel,data);
-      writer.print(data.getUuid());
+      os.write(data.getUuid().getBytes());
     }
     catch (IOException e)
     {
@@ -95,6 +91,9 @@ public class Commands
 
 /*********************************************************************
  * $Log: Commands.java,v $
+ * Revision 1.3  2008/10/08 17:55:11  willuhn
+ * @N SOAP-Connector (in progress)
+ *
  * Revision 1.2  2008/10/08 16:01:40  willuhn
  * @N REST-Services via Injection (mittels Annotation) mit Context-Daten befuellen
  *

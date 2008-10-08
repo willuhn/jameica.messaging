@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorXmlRpcServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/07 23:03:34 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/08 17:55:11 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -18,6 +18,8 @@ import java.io.ByteArrayOutputStream;
 import java.rmi.RemoteException;
 import java.util.Map;
 
+import javax.jws.WebService;
+
 import de.willuhn.jameica.messaging.LookupService;
 import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
@@ -28,8 +30,9 @@ import de.willuhn.logging.Logger;
 
 
 /**
- * Implementierung des XML-RPC-Connectors.
+ * Implementierung des XML-RPC- und SOAP-Connectors.
  */
+@WebService(endpointInterface="de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService")
 public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
 {
   private boolean started = false;
@@ -243,6 +246,9 @@ public class ConnectorXmlRpcServiceImpl implements ConnectorXmlRpcService
 
 /**********************************************************************
  * $Log: ConnectorXmlRpcServiceImpl.java,v $
+ * Revision 1.2  2008/10/08 17:55:11  willuhn
+ * @N SOAP-Connector (in progress)
+ *
  * Revision 1.1  2008/10/07 23:03:34  willuhn
  * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
  *

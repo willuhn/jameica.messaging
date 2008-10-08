@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/08 16:01:40 $
+ * $Revision: 1.3 $
+ * $Date: 2008/10/08 17:55:11 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -78,7 +78,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
     }
 
     this.consumer = new RestConsumer();
-    Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.ready").registerMessageConsumer(this.consumer);
+    Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.start").registerMessageConsumer(this.consumer);
   }
 
   /**
@@ -142,6 +142,9 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.3  2008/10/08 17:55:11  willuhn
+ * @N SOAP-Connector (in progress)
+ *
  * Revision 1.2  2008/10/08 16:01:40  willuhn
  * @N REST-Services via Injection (mittels Annotation) mit Context-Daten befuellen
  *
