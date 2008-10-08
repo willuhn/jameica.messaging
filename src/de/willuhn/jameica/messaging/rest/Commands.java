@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rest/Commands.java,v $
- * $Revision: 1.3 $
- * $Date: 2008/10/08 17:55:11 $
+ * $Revision: 1.4 $
+ * $Date: 2008/10/08 21:38:38 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -14,13 +14,16 @@
 package de.willuhn.jameica.messaging.rest;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.StorageService;
 import de.willuhn.jameica.system.Application;
+import de.willuhn.jameica.webadmin.rest.annotation.Request;
+import de.willuhn.jameica.webadmin.rest.annotation.Response;
 import de.willuhn.logging.Logger;
 
 /**
@@ -28,11 +31,11 @@ import de.willuhn.logging.Logger;
  */
 public class Commands
 {
-  @de.willuhn.jameica.webadmin.rest.annotation.InputStream
-  private InputStream is = null;
+  @Request
+  private HttpServletRequest request = null;
   
-  @de.willuhn.jameica.webadmin.rest.annotation.OutputStream
-  private OutputStream os = null;
+  @Response
+  private HttpServletResponse response = null;
   
   /**
    * Liefert die Datei mit der angegebenen UUID.
@@ -45,7 +48,7 @@ public class Commands
     {
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
       MessageData data = new MessageData();
-      data.setOutputStream(os);
+      data.setOutputStream(response.getOutputStream());
       data.setUuid(uuid);
       service.get(data);
     }
@@ -71,9 +74,9 @@ public class Commands
     {
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
       MessageData data = new MessageData();
-      data.setInputStream(is);
+      data.setInputStream(request.getInputStream());
       service.put(channel,data);
-      os.write(data.getUuid().getBytes());
+      response.getWriter().print(data.getUuid());
     }
     catch (IOException e)
     {
@@ -91,6 +94,9 @@ public class Commands
 
 /*********************************************************************
  * $Log: Commands.java,v $
+ * Revision 1.4  2008/10/08 21:38:38  willuhn
+ * @C Nur noch zwei Annotations "Request" und "Response"
+ *
  * Revision 1.3  2008/10/08 17:55:11  willuhn
  * @N SOAP-Connector (in progress)
  *
