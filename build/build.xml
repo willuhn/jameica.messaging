@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
- $Revision: 1.1 $
- $Date: 2007/12/13 23:31:38 $
+ $Revision: 1.2 $
+ $Date: 2008/10/08 16:01:40 $
  $Author: willuhn $
  
  Copyright (c) by willuhn software & services
@@ -84,7 +84,7 @@
 
 		<mkdir dir="${class.dir}" />
 
-		<javac debug="true" debuglevel="lines,vars,source" source="1.4" target="1.4" encoding="ISO-8859-1" deprecation="true" destdir="${class.dir}" srcdir="${src.dir}">
+		<javac debug="true" debuglevel="lines,vars,source" source="1.5" target="1.5" encoding="ISO-8859-1" deprecation="true" destdir="${class.dir}" srcdir="${src.dir}">
 			<classpath refid="compilepath" />
 		</javac>
 
@@ -182,7 +182,7 @@
 
 		<mkdir dir="${project.javadoc}" />
 
-		<javadoc destdir="${project.javadoc}" packagenames="${define.javadoc.package}.*">
+		<javadoc destdir="${project.javadoc}" packagenames="${define.javadoc.package}.*" source="1.5">
 			<classpath refid="compilepath" />
 			<sourcepath>
 				<pathelement location="${src.dir}" />

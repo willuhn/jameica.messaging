@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/07 23:45:41 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/08 16:01:40 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -15,6 +15,8 @@ package de.willuhn.jameica.messaging.server;
 
 import java.rmi.RemoteException;
 
+import de.willuhn.jameica.messaging.Message;
+import de.willuhn.jameica.messaging.MessageConsumer;
 import de.willuhn.jameica.messaging.QueryMessage;
 import de.willuhn.jameica.messaging.rest.Commands;
 import de.willuhn.jameica.messaging.rmi.ConnectorRestService;
@@ -27,7 +29,18 @@ import de.willuhn.logging.Logger;
  */
 public class ConnectorRestServiceImpl implements ConnectorRestService
 {
-  private boolean started = false;
+  /**
+   * Pattern fuer das GET-Kommando.
+   */
+  private final static String PATTERN_GET = "/messaging/get/(.*)";
+  
+  /**
+   * Pattern fuer das PUT-Kommando.
+   */
+  private final static String PATTERN_PUT = "/messaging/put/(.*)";
+
+
+  private RestConsumer consumer = null;
 
   /**
    * @see de.willuhn.datasource.Service#getName()
@@ -50,7 +63,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
    */
   public boolean isStarted() throws RemoteException
   {
-    return this.started;
+    return this.consumer != null;
   }
 
   /**
@@ -64,14 +77,8 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
       return;
     }
 
-    // TODO: Nicht sichergestellt, dass das passiert, wenn die REST-Registry
-    // online ist. Sollte via SystemMessage.SYSTEM_STARTED verzoegert werden
-    QueryMessage q = new QueryMessage();
-    q.setName(Commands.PATTERN_GET);
-    q.setData(Commands.class.getName() + ".get");
-    Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(q);
-
-    this.started = true;
+    this.consumer = new RestConsumer();
+    Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.ready").registerMessageConsumer(this.consumer);
   }
 
   /**
@@ -84,10 +91,50 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
       Logger.warn("service not started, skipping request");
       return;
     }
-    QueryMessage q = new QueryMessage();
-    q.setName(Commands.PATTERN_GET);
-    Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(q);
-    this.started = false;
+
+    try
+    {
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_GET,null));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_PUT,null));
+    }
+    finally
+    {
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.ready").unRegisterMessageConsumer(this.consumer);
+      this.consumer = null;
+    }
+  }
+  
+  /**
+   * Hilfsklasse zum Registrieren der REST-Kommandos.
+   */
+  private class RestConsumer implements MessageConsumer
+  {
+
+    /**
+     * @see de.willuhn.jameica.messaging.MessageConsumer#autoRegister()
+     */
+    public boolean autoRegister()
+    {
+      return false;
+    }
+
+    /**
+     * @see de.willuhn.jameica.messaging.MessageConsumer#getExpectedMessageTypes()
+     */
+    public Class[] getExpectedMessageTypes()
+    {
+      return new Class[]{Message.class};
+    }
+
+    /**
+     * @see de.willuhn.jameica.messaging.MessageConsumer#handleMessage(de.willuhn.jameica.messaging.Message)
+     */
+    public void handleMessage(Message message) throws Exception
+    {
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_GET,Commands.class.getName() + ".get"));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_PUT,Commands.class.getName() + ".put"));
+    }
+    
   }
 
 }
@@ -95,6 +142,9 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.2  2008/10/08 16:01:40  willuhn
+ * @N REST-Services via Injection (mittels Annotation) mit Context-Daten befuellen
+ *
  * Revision 1.1  2008/10/07 23:45:41  willuhn
  * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
  *
