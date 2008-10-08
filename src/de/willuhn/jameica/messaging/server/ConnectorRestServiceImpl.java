@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.7 $
- * $Date: 2008/10/08 23:18:39 $
+ * $Revision: 1.8 $
+ * $Date: 2008/10/08 23:26:52 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -88,6 +88,10 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
     }
 
     this.consumer = new RestConsumer();
+    // TODO: Das funktioniert nur beim ersten Start.
+    // Im laufenden Betrieb geht das nicht mehr, weil diese
+    // Message erst dann wieder kommt, wenn der REST-Service von jameica.webadmin
+    // neu gestartet wurde
     Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.start").registerMessageConsumer(this.consumer);
   }
 
@@ -159,6 +163,9 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.8  2008/10/08 23:26:52  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.7  2008/10/08 23:18:39  willuhn
  * @B bugfixing
  * @N SoapTest

@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorSoapServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/08 23:18:39 $
+ * $Revision: 1.2 $
+ * $Date: 2008/10/08 23:24:35 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -187,6 +187,7 @@ public class ConnectorSoapServiceImpl implements ConnectorSoapService
     }
     // wir lassen uns benachrichtigen, wenn wir den SOAP-Service deployen koennen.
     Application.getMessagingFactory().registerMessageConsumer(new SoapConsumer());
+    this.started = true;
   }
 
   /**
@@ -242,6 +243,9 @@ public class ConnectorSoapServiceImpl implements ConnectorSoapService
 
 /**********************************************************************
  * $Log: ConnectorSoapServiceImpl.java,v $
+ * Revision 1.2  2008/10/08 23:24:35  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.1  2008/10/08 23:18:39  willuhn
  * @B bugfixing
  * @N SoapTest
