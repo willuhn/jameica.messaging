@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rest/Commands.java,v $
- * $Revision: 1.5 $
- * $Date: 2008/10/08 22:05:52 $
+ * $Revision: 1.6 $
+ * $Date: 2008/10/21 22:33:44 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -22,6 +22,7 @@ import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.StorageService;
 import de.willuhn.jameica.system.Application;
+import de.willuhn.jameica.webadmin.rest.annotation.Path;
 import de.willuhn.jameica.webadmin.rest.annotation.Request;
 import de.willuhn.jameica.webadmin.rest.annotation.Response;
 import de.willuhn.logging.Logger;
@@ -42,6 +43,7 @@ public class Commands
    * @param uuid UUID.
    * @throws IOException
    */
+  @Path("/message/get/(.*)")
   public void get(String uuid) throws IOException
   {
     try
@@ -68,6 +70,7 @@ public class Commands
    * @param channel Channel.
    * @throws IOException
    */
+  @Path("/message/put/(.*)")
   public void put(String channel) throws IOException
   {
     try
@@ -95,6 +98,7 @@ public class Commands
    * @param channel Channel.
    * @throws IOException
    */
+  @Path("/message/next/(.*)")
   public void next(String channel) throws IOException
   {
     try
@@ -120,6 +124,7 @@ public class Commands
    * @param uuid UUID.
    * @throws IOException
    */
+  @Path("/message/delete/(.*)")
   public void delete(String uuid) throws IOException
   {
     try
@@ -145,6 +150,9 @@ public class Commands
 
 /*********************************************************************
  * $Log: Commands.java,v $
+ * Revision 1.6  2008/10/21 22:33:44  willuhn
+ * @N Markieren der zu registrierenden REST-Kommandos via Annotation
+ *
  * Revision 1.5  2008/10/08 22:05:52  willuhn
  * @N REST-Kommandos vervollstaendigt
  *

@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.8 $
- * $Date: 2008/10/08 23:26:52 $
+ * $Revision: 1.9 $
+ * $Date: 2008/10/21 22:33:44 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -29,28 +29,8 @@ import de.willuhn.logging.Logger;
  */
 public class ConnectorRestServiceImpl implements ConnectorRestService
 {
-  /**
-   * Pattern fuer das GET-Kommando.
-   */
-  private final static String PATTERN_GET = "/message/get/(.*)";
-  
-  /**
-   * Pattern fuer das PUT-Kommando.
-   */
-  private final static String PATTERN_PUT = "/message/put/(.*)";
-
-  /**
-   * Pattern fuer das NEXT-Kommando.
-   */
-  private final static String PATTERN_NEXT = "/message/next/(.*)";
-
-  /**
-   * Pattern fuer das DELETE-Kommando.
-   */
-  private final static String PATTERN_DELETE = "/message/delete/(.*)";
-
-  
-  private RestConsumer consumer = null;
+  private Commands bean           = null;
+  private RestConsumer consumer   = new RestConsumer();
 
   /**
    * @see de.willuhn.datasource.Service#getName()
@@ -73,7 +53,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
    */
   public boolean isStarted() throws RemoteException
   {
-    return this.consumer != null;
+    return this.bean != null;
   }
 
   /**
@@ -87,11 +67,12 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
       return;
     }
 
-    this.consumer = new RestConsumer();
-    // TODO: Das funktioniert nur beim ersten Start.
-    // Im laufenden Betrieb geht das nicht mehr, weil diese
-    // Message erst dann wieder kommt, wenn der REST-Service von jameica.webadmin
-    // neu gestartet wurde
+    this.bean = new Commands();
+    
+    // Wir registrieren uns explizit - fuer den Fall, dass der REST-Service schon laeuft
+    Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(bean));
+    
+    // Wir registrieren und implizit - und lassen uns benachrichtigen, wenn der REST-Service startet.
     Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.start").registerMessageConsumer(this.consumer);
   }
 
@@ -108,18 +89,14 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
     try
     {
-      // REST-Kommandos deregistrieren
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_GET,null));
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_PUT,null));
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_NEXT,null));
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(PATTERN_DELETE,null));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.unregister").sendMessage(new QueryMessage(this.bean));
     }
     finally
     {
-      // Wir wollen kuenftig auch nicht mehr benachrichtigt
-      // werden, wenn der REST-Service startet
+      this.bean = null;
+
+      // Wir wollen kuenftig auch nicht mehr benachrichtigt, wenn der REST-Service startet.
       Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.start").unRegisterMessageConsumer(this.consumer);
-      this.consumer = null;
     }
   }
   
@@ -128,7 +105,6 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
    */
   private class RestConsumer implements MessageConsumer
   {
-
     /**
      * @see de.willuhn.jameica.messaging.MessageConsumer#autoRegister()
      */
@@ -150,10 +126,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
      */
     public void handleMessage(Message message) throws Exception
     {
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_GET,Commands.class.getName() + ".get"));
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_PUT,Commands.class.getName() + ".put"));
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_NEXT,Commands.class.getName() + ".next"));
-      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(PATTERN_DELETE,Commands.class.getName() + ".delete"));
+      Application.getMessagingFactory().getMessagingQueue("jameica.webadmin.rest.register").sendMessage(new QueryMessage(bean));
     }
     
   }
@@ -163,6 +136,9 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.9  2008/10/21 22:33:44  willuhn
+ * @N Markieren der zu registrierenden REST-Kommandos via Annotation
+ *
  * Revision 1.8  2008/10/08 23:26:52  willuhn
  * *** empty log message ***
  *
