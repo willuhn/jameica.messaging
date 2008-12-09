@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorTcpServiceImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2008/10/08 17:55:11 $
+ * $Revision: 1.4 $
+ * $Date: 2008/12/09 17:10:55 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -159,7 +159,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       this.running = true;
       
       String url  = (address != null ? address.getHostName() : Application.getCallback().getHostname()) + ":" + port;
-      LookupService.register("tcp:" + Plugin.class.getName() + "." + getName(),url);
+      LookupService.register("tcp:" + Plugin.class.getName() + "." + ConnectorTcpServiceImpl.this.getName(),url);
     }
     
     /**
@@ -170,7 +170,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       this.running = false;
       try
       {
-        LookupService.unRegister("tcp:" + Plugin.class.getName() + "." + getName());
+        LookupService.unRegister("tcp:" + Plugin.class.getName() + "." + ConnectorTcpServiceImpl.this.getName());
       }
       catch (Exception e)
       {
@@ -381,6 +381,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
 /**********************************************************************
  * $Log: ConnectorTcpServiceImpl.java,v $
+ * Revision 1.4  2008/12/09 17:10:55  willuhn
+ * @B falscher lookup name fuer tcp connector
+ *
  * Revision 1.3  2008/10/08 17:55:11  willuhn
  * @N SOAP-Connector (in progress)
  *
