@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.9 $
- * $Date: 2008/10/21 22:33:44 $
+ * $Revision: 1.10 $
+ * $Date: 2008/12/09 16:50:03 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -20,6 +20,7 @@ import de.willuhn.jameica.messaging.MessageConsumer;
 import de.willuhn.jameica.messaging.QueryMessage;
 import de.willuhn.jameica.messaging.rest.Commands;
 import de.willuhn.jameica.messaging.rmi.ConnectorRestService;
+import de.willuhn.jameica.plugin.AbstractPlugin;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.logging.Logger;
 
@@ -67,6 +68,13 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
       return;
     }
 
+    // Wir checken, ob das Webadmin-Plugin verfuegbar ist
+    AbstractPlugin p = Application.getPluginLoader().getPlugin("de.willuhn.jameica.webadmin.Plugin");
+    if (p == null)
+    {
+      Logger.info("plugin jameica.webadmin not installed, skipping REST service");
+      return;
+    }
     this.bean = new Commands();
     
     // Wir registrieren uns explizit - fuer den Fall, dass der REST-Service schon laeuft
@@ -136,6 +144,9 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.10  2008/12/09 16:50:03  willuhn
+ * @N Abhaengigkeiten optional deklariert
+ *
  * Revision 1.9  2008/10/21 22:33:44  willuhn
  * @N Markieren der zu registrierenden REST-Kommandos via Annotation
  *
