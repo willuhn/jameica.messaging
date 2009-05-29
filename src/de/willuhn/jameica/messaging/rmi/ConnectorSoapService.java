@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/ConnectorSoapService.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/08 23:18:38 $
+ * $Revision: 1.2 $
+ * $Date: 2009/05/29 16:24:22 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -54,7 +54,7 @@ public interface ConnectorSoapService extends Service
    * @return eine UUID, anhand derer die Message auch identifiziert werden kann.
    * @throws RemoteException
    */
-  public @WebResult(name="uuid") String put(@WebParam(name="channel") String channel, @WebParam(name="data") byte[] data, @WebParam(name="properties") HashMap properties) throws RemoteException;
+  public @WebResult(name="uuid") String put(@WebParam(name="channel") String channel, @WebParam(name="data") byte[] data, @WebParam(name="properties") HashMap<String,String> properties) throws RemoteException;
   
   /**
    * Liefert die Nachricht mit der angegebenen UUID.
@@ -70,12 +70,15 @@ public interface ConnectorSoapService extends Service
    * @return die Properties oder <code>null</code> wenn die Nachricht nicht gefunden wurde.
    * @throws RemoteException
    */
-  public @WebResult(name="properties") HashMap getProperties(@WebParam(name="uuid") String uuid) throws RemoteException;
+  public @WebResult(name="properties") HashMap<String,String> getProperties(@WebParam(name="uuid") String uuid) throws RemoteException;
 }
 
 
 /*********************************************************************
  * $Log: ConnectorSoapService.java,v $
+ * Revision 1.2  2009/05/29 16:24:22  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.1  2008/10/08 23:18:38  willuhn
  * @B bugfixing
  * @N SoapTest

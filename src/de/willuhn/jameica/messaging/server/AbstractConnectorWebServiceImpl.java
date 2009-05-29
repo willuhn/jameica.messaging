@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/AbstractConnectorWebServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2009/05/29 15:53:06 $
+ * $Revision: 1.2 $
+ * $Date: 2009/05/29 16:24:22 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -109,7 +109,7 @@ public abstract class AbstractConnectorWebServiceImpl
    * @return die Properties.
    * @throws RemoteException
    */
-  public HashMap getProperties(String uuid) throws RemoteException
+  public HashMap<String,String> getProperties(String uuid) throws RemoteException
   {
     if (!this.isStarted())
       throw new RemoteException("service not started");
@@ -120,11 +120,9 @@ public abstract class AbstractConnectorWebServiceImpl
       MessageData message = new MessageData();
       message.setUuid(uuid);
       service.getProperties(message);
-      Map map = message.getProperties();
-      if (map == null)
-        return null;
+      Map m = message.getProperties();
+      return m == null ? null : new HashMap<String,String>(m);
       
-      return new HashMap(map);
     }
     catch (RemoteException re)
     {
@@ -170,7 +168,7 @@ public abstract class AbstractConnectorWebServiceImpl
    * @return Erzeugte UUID.
    * @throws RemoteException
    */
-  public String put(String channel, byte[] data, HashMap properties)
+  public String put(String channel, byte[] data, HashMap<String,String> properties)
       throws RemoteException
   {
     if (!this.isStarted())
@@ -244,6 +242,9 @@ public abstract class AbstractConnectorWebServiceImpl
 
 /**********************************************************************
  * $Log: AbstractConnectorWebServiceImpl.java,v $
+ * Revision 1.2  2009/05/29 16:24:22  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.1  2009/05/29 15:53:06  willuhn
  * @N Gemeinsame Basis-Klasse fuer Web-Connectoren
  *

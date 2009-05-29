@@ -11,10 +11,10 @@ import java.util.Map;
  */
 public class MessageData
 {
-  private InputStream inputStream   = null;
-  private OutputStream outputStream = null;
-  private String uuid               = null;
-  private Map properties            = null;
+  private InputStream inputStream           = null;
+  private OutputStream outputStream         = null;
+  private String uuid                       = null;
+  private Map properties                    = null;
   
   /**
    * Liefert optionale Attribute fuer die Message.
@@ -93,6 +93,9 @@ public class MessageData
 
 /**********************************************************************
  * $Log: MessageData.java,v $
+ * Revision 1.2  2009/05/29 16:24:22  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.1  2008/10/07 23:03:34  willuhn
  * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
  *

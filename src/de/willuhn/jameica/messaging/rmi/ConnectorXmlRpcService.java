@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/ConnectorXmlRpcService.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/08 23:18:38 $
+ * $Revision: 1.3 $
+ * $Date: 2009/05/29 16:24:22 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -49,7 +49,7 @@ public interface ConnectorXmlRpcService extends Service
    * @return eine UUID, anhand derer die Message auch identifiziert werden kann.
    * @throws RemoteException
    */
-  public String put(String channel, byte[] data, HashMap properties) throws RemoteException;
+  public String put(String channel, byte[] data, HashMap<String,String> properties) throws RemoteException;
   
   /**
    * Liefert die Nachricht mit der angegebenen UUID.
@@ -65,12 +65,15 @@ public interface ConnectorXmlRpcService extends Service
    * @return die Properties oder <code>null</code> wenn die Nachricht nicht gefunden wurde.
    * @throws RemoteException
    */
-  public HashMap getProperties(String uuid) throws RemoteException;
+  public HashMap<String,String> getProperties(String uuid) throws RemoteException;
 }
 
 
 /*********************************************************************
  * $Log: ConnectorXmlRpcService.java,v $
+ * Revision 1.3  2009/05/29 16:24:22  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.2  2008/10/08 23:18:38  willuhn
  * @B bugfixing
  * @N SoapTest
