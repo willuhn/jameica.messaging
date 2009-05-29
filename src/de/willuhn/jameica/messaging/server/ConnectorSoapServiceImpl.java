@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorSoapServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/08 23:24:35 $
+ * $Revision: 1.3 $
+ * $Date: 2009/05/29 15:53:06 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -14,18 +14,15 @@
 package de.willuhn.jameica.messaging.server;
 
 import java.rmi.RemoteException;
-import java.util.HashMap;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
 
 import de.willuhn.jameica.messaging.Message;
 import de.willuhn.jameica.messaging.MessageConsumer;
-import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.QueryMessage;
 import de.willuhn.jameica.messaging.SystemMessage;
 import de.willuhn.jameica.messaging.rmi.ConnectorSoapService;
-import de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.logging.Logger;
 
@@ -34,117 +31,14 @@ import de.willuhn.logging.Logger;
  * Implementierung des SOAP-Connectors.
  */
 @WebService(endpointInterface="de.willuhn.jameica.messaging.rmi.ConnectorSoapService")
-public class ConnectorSoapServiceImpl implements ConnectorSoapService
+public class ConnectorSoapServiceImpl extends AbstractConnectorWebServiceImpl implements ConnectorSoapService
 {
-  private boolean started = false;
-
   /**
    * ct.
    */
   public ConnectorSoapServiceImpl()
   {
     super();
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.rmi.ConnectorSoapService#delete(java.lang.String)
-   */
-  public boolean delete(String uuid) throws RemoteException
-  {
-    try
-    {
-      ConnectorXmlRpcService service = (ConnectorXmlRpcService) Application.getServiceFactory().lookup(Plugin.class,"connector.xmlrpc");
-      return service.delete(uuid);
-    }
-    catch (RemoteException re)
-    {
-      throw re;
-    }
-    catch (Exception e)
-    {
-      throw new RemoteException("unable to delete uuid " + uuid,e);
-    }
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.rmi.ConnectorSoapService#get(java.lang.String)
-   */
-  public byte[] get(String uuid) throws RemoteException
-  {
-    try
-    {
-      ConnectorXmlRpcService service = (ConnectorXmlRpcService) Application.getServiceFactory().lookup(Plugin.class,"connector.xmlrpc");
-      return service.get(uuid);
-    }
-    catch (RemoteException re)
-    {
-      throw re;
-    }
-    catch (Exception e)
-    {
-      throw new RemoteException("unable to get uuid " + uuid,e);
-    }
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.rmi.ConnectorSoapService#getProperties(java.lang.String)
-   */
-  public HashMap getProperties(String uuid) throws RemoteException
-  {
-    try
-    {
-      ConnectorXmlRpcService service = (ConnectorXmlRpcService) Application.getServiceFactory().lookup(Plugin.class,"connector.xmlrpc");
-      return service.getProperties(uuid);
-    }
-    catch (RemoteException re)
-    {
-      throw re;
-    }
-    catch (Exception e)
-    {
-      throw new RemoteException("unable to get properties for uuid " + uuid,e);
-    }
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.rmi.ConnectorSoapService#next(java.lang.String)
-   */
-  public String next(String channel) throws RemoteException
-  {
-    try
-    {
-      ConnectorXmlRpcService service = (ConnectorXmlRpcService) Application.getServiceFactory().lookup(Plugin.class,"connector.xmlrpc");
-      return service.next(channel);
-    }
-    catch (RemoteException re)
-    {
-      throw re;
-    }
-    catch (Exception e)
-    {
-      throw new RemoteException("unable to get next uuid for channel " + channel,e);
-    }
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.rmi.ConnectorSoapService#put(java.lang.String, byte[], java.util.HashMap)
-   */
-  public String put(String channel, byte[] data, HashMap properties)
-      throws RemoteException
-  {
-    try
-    {
-      ConnectorXmlRpcService service = (ConnectorXmlRpcService) Application.getServiceFactory().lookup(Plugin.class,"connector.xmlrpc");
-      return service.put(channel,data,properties);
-    }
-    catch (RemoteException re)
-    {
-      throw re;
-    }
-    catch (Exception e)
-    {
-      throw new RemoteException("unable to put message into channel " + channel,e);
-    }
   }
 
   /**
@@ -157,21 +51,30 @@ public class ConnectorSoapServiceImpl implements ConnectorSoapService
   }
 
   /**
-   * @see de.willuhn.datasource.Service#isStartable()
+   * @see de.willuhn.jameica.messaging.server.AbstractConnectorWebServiceImpl#isStartable()
    */
   @WebMethod(exclude=true)
   public boolean isStartable() throws RemoteException
   {
-    return !this.isStarted();
+    return super.isStartable();
   }
 
   /**
-   * @see de.willuhn.datasource.Service#isStarted()
+   * @see de.willuhn.jameica.messaging.server.AbstractConnectorWebServiceImpl#isStarted()
    */
   @WebMethod(exclude=true)
   public boolean isStarted() throws RemoteException
   {
-    return this.started;
+    return super.isStarted();
+  }
+
+  /**
+   * @see de.willuhn.jameica.messaging.server.AbstractConnectorWebServiceImpl#stop(boolean)
+   */
+  @WebMethod(exclude=true)
+  public void stop(boolean arg0) throws RemoteException
+  {
+    super.stop(arg0);
   }
 
   /**
@@ -185,23 +88,9 @@ public class ConnectorSoapServiceImpl implements ConnectorSoapService
       Logger.warn("service allready started, skipping request");
       return;
     }
+    super.start();
     // wir lassen uns benachrichtigen, wenn wir den SOAP-Service deployen koennen.
     Application.getMessagingFactory().registerMessageConsumer(new SoapConsumer());
-    this.started = true;
-  }
-
-  /**
-   * @see de.willuhn.datasource.Service#stop(boolean)
-   */
-  @WebMethod(exclude=true)
-  public void stop(boolean arg0) throws RemoteException
-  {
-    if(!this.isStarted())
-    {
-      Logger.warn("service not started, skipping request");
-      return;
-    }
-    this.started = false;
   }
 
   /**
@@ -243,6 +132,9 @@ public class ConnectorSoapServiceImpl implements ConnectorSoapService
 
 /**********************************************************************
  * $Log: ConnectorSoapServiceImpl.java,v $
+ * Revision 1.3  2009/05/29 15:53:06  willuhn
+ * @N Gemeinsame Basis-Klasse fuer Web-Connectoren
+ *
  * Revision 1.2  2008/10/08 23:24:35  willuhn
  * *** empty log message ***
  *
