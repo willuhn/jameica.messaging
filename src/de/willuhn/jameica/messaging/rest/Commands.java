@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rest/Commands.java,v $
- * $Revision: 1.6 $
- * $Date: 2008/10/21 22:33:44 $
+ * $Revision: 1.7 $
+ * $Date: 2009/06/02 22:59:48 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -17,6 +17,8 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.json.JSONObject;
 
 import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
@@ -62,6 +64,33 @@ public class Commands
     {
       Logger.error("unable to fetch file, uuid: " + uuid,e2);
       throw new IOException("unable to fetch file, uuid: " + uuid + " - " + e2.getMessage());
+    }
+  }
+
+  /**
+   * Liefert die Metadaten zur angegebenen UUID.
+   * @param uuid UUID.
+   * @throws IOException
+   */
+  @Path("/message/getmeta/(.*)")
+  public void getMeta(String uuid) throws IOException
+  {
+    try
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      MessageData data = new MessageData();
+      data.setUuid(uuid);
+      service.getProperties(data);
+      response.getWriter().print(new JSONObject(data.getProperties()).toString());
+    }
+    catch (IOException e)
+    {
+      throw e;
+    }
+    catch (Exception e2)
+    {
+      Logger.error("unable to fetch meta data, uuid: " + uuid,e2);
+      throw new IOException("unable to fetch meta data, uuid: " + uuid + " - " + e2.getMessage());
     }
   }
 
@@ -150,6 +179,9 @@ public class Commands
 
 /*********************************************************************
  * $Log: Commands.java,v $
+ * Revision 1.7  2009/06/02 22:59:48  willuhn
+ * @N Funktion zum Abrufen der Meta-Daten
+ *
  * Revision 1.6  2008/10/21 22:33:44  willuhn
  * @N Markieren der zu registrierenden REST-Kommandos via Annotation
  *
