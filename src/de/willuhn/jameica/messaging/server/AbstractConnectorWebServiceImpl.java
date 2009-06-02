@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/AbstractConnectorWebServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2009/05/29 16:24:22 $
+ * $Revision: 1.3 $
+ * $Date: 2009/06/02 22:34:44 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -19,6 +19,9 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jws.WebMethod;
+
+import de.willuhn.datasource.Service;
 import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.StorageService;
@@ -29,17 +32,9 @@ import de.willuhn.logging.Logger;
 /**
  * Abstrakte Basis-Implementierung fuer Web-basierte Connectors.
  */
-public abstract class AbstractConnectorWebServiceImpl
+public abstract class AbstractConnectorWebServiceImpl implements Service
 {
   private boolean started = false;
-
-  /**
-   * ct.
-   */
-  public AbstractConnectorWebServiceImpl()
-  {
-    super();
-  }
 
   /**
    * Loescht die Nachricht mit der angegebenen UUID.
@@ -198,6 +193,7 @@ public abstract class AbstractConnectorWebServiceImpl
   /**
    * @see de.willuhn.datasource.Service#isStartable()
    */
+  @WebMethod(exclude=true)
   public boolean isStartable() throws RemoteException
   {
     return !this.isStarted();
@@ -206,6 +202,7 @@ public abstract class AbstractConnectorWebServiceImpl
   /**
    * @see de.willuhn.datasource.Service#isStarted()
    */
+  @WebMethod(exclude=true)
   public boolean isStarted() throws RemoteException
   {
     return this.started;
@@ -214,6 +211,7 @@ public abstract class AbstractConnectorWebServiceImpl
   /**
    * @see de.willuhn.datasource.Service#start()
    */
+  @WebMethod(exclude=true)
   public void start() throws RemoteException
   {
     if(this.isStarted())
@@ -227,6 +225,7 @@ public abstract class AbstractConnectorWebServiceImpl
   /**
    * @see de.willuhn.datasource.Service#stop(boolean)
    */
+  @WebMethod(exclude=true)
   public void stop(boolean arg0) throws RemoteException
   {
     if(!this.isStarted())
@@ -242,6 +241,9 @@ public abstract class AbstractConnectorWebServiceImpl
 
 /**********************************************************************
  * $Log: AbstractConnectorWebServiceImpl.java,v $
+ * Revision 1.3  2009/06/02 22:34:44  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.2  2009/05/29 16:24:22  willuhn
  * *** empty log message ***
  *

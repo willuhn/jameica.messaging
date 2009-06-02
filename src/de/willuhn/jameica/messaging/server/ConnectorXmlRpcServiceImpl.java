@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorXmlRpcServiceImpl.java,v $
- * $Revision: 1.4 $
- * $Date: 2009/05/29 15:53:06 $
+ * $Revision: 1.5 $
+ * $Date: 2009/06/02 22:34:44 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -24,14 +24,6 @@ import de.willuhn.jameica.messaging.rmi.ConnectorXmlRpcService;
 public class ConnectorXmlRpcServiceImpl extends AbstractConnectorWebServiceImpl implements ConnectorXmlRpcService
 {
   /**
-   * ct.
-   */
-  public ConnectorXmlRpcServiceImpl()
-  {
-    super();
-  }
-
-  /**
    * @see de.willuhn.datasource.Service#getName()
    */
   public String getName() throws RemoteException
@@ -43,6 +35,9 @@ public class ConnectorXmlRpcServiceImpl extends AbstractConnectorWebServiceImpl 
 
 /**********************************************************************
  * $Log: ConnectorXmlRpcServiceImpl.java,v $
+ * Revision 1.5  2009/06/02 22:34:44  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.4  2009/05/29 15:53:06  willuhn
  * @N Gemeinsame Basis-Klasse fuer Web-Connectoren
  *

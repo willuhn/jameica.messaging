@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorSoapServiceImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2009/05/29 15:53:06 $
+ * $Revision: 1.4 $
+ * $Date: 2009/06/02 22:34:44 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -34,47 +34,12 @@ import de.willuhn.logging.Logger;
 public class ConnectorSoapServiceImpl extends AbstractConnectorWebServiceImpl implements ConnectorSoapService
 {
   /**
-   * ct.
-   */
-  public ConnectorSoapServiceImpl()
-  {
-    super();
-  }
-
-  /**
    * @see de.willuhn.datasource.Service#getName()
    */
   @WebMethod(exclude=true)
   public String getName() throws RemoteException
   {
     return "connector.soap";
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.server.AbstractConnectorWebServiceImpl#isStartable()
-   */
-  @WebMethod(exclude=true)
-  public boolean isStartable() throws RemoteException
-  {
-    return super.isStartable();
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.server.AbstractConnectorWebServiceImpl#isStarted()
-   */
-  @WebMethod(exclude=true)
-  public boolean isStarted() throws RemoteException
-  {
-    return super.isStarted();
-  }
-
-  /**
-   * @see de.willuhn.jameica.messaging.server.AbstractConnectorWebServiceImpl#stop(boolean)
-   */
-  @WebMethod(exclude=true)
-  public void stop(boolean arg0) throws RemoteException
-  {
-    super.stop(arg0);
   }
 
   /**
@@ -132,6 +97,9 @@ public class ConnectorSoapServiceImpl extends AbstractConnectorWebServiceImpl im
 
 /**********************************************************************
  * $Log: ConnectorSoapServiceImpl.java,v $
+ * Revision 1.4  2009/06/02 22:34:44  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.3  2009/05/29 15:53:06  willuhn
  * @N Gemeinsame Basis-Klasse fuer Web-Connectoren
  *
