@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/StorageService.java,v $
- * $Revision: 1.1 $
- * $Date: 2008/10/07 23:03:34 $
+ * $Revision: 1.2 $
+ * $Date: 2009/06/02 23:24:52 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -47,6 +47,14 @@ public interface StorageService extends Service
   public String next(String channel) throws IOException;
   
   /**
+   * Liefert eine Liste der UUIDs in diesem Channel.
+   * @param channel Name des Channels. 
+   * @return Liste der UUIDs.
+   * @throws IOException
+   */
+  public String[] list(String channel) throws IOException;
+
+  /**
    * Loescht die Nachricht mit der angegebenen UUID.
    * @param message die Message.
    * @throws IOException
@@ -67,6 +75,9 @@ public interface StorageService extends Service
 
 /*********************************************************************
  * $Log: StorageService.java,v $
+ * Revision 1.2  2009/06/02 23:24:52  willuhn
+ * @N Funktion, die eine Liste aller UUIDs in einem Channel liefert
+ *
  * Revision 1.1  2008/10/07 23:03:34  willuhn
  * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
  *

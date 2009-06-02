@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2008/10/07 23:45:41 $
+ * $Revision: 1.3 $
+ * $Date: 2009/06/02 23:24:52 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -191,6 +191,39 @@ public class StorageServiceFileImpl implements StorageService
     return found.getName();
   }
   
+  /**
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#list(java.lang.String)
+   */
+  public synchronized String[] list(String channel) throws IOException
+  {
+    if (!this.isStarted())
+      throw new IOException("service not started");
+
+    File dir = new File(getWorkdir().getAbsolutePath(),escape(channel));
+    if (!dir.exists())
+      throw new IOException("channel does not exist");
+
+    File[] files = dir.listFiles(new FileFilter() {
+      /**
+       * @see java.io.FileFilter#accept(java.io.File)
+       */
+      public boolean accept(File pathname)
+      {
+        return pathname.isFile() && pathname.canRead();
+      }
+    });
+
+    String[] names = new String[files.length];
+    for (int i=0;i<files.length;++i)
+    {
+      names[i] = files[i].getName();
+    }
+    
+    //Alphabetisch sortieren
+    Arrays.sort(names);
+    return names;
+  }
+
   /**
    * @see de.willuhn.jameica.messaging.rmi.StorageService#delete(de.willuhn.jameica.messaging.MessageData)
    */
@@ -443,6 +476,9 @@ public class StorageServiceFileImpl implements StorageService
 
 /*********************************************************************
  * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.3  2009/06/02 23:24:52  willuhn
+ * @N Funktion, die eine Liste aller UUIDs in einem Channel liefert
+ *
  * Revision 1.2  2008/10/07 23:45:41  willuhn
  * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
  *
