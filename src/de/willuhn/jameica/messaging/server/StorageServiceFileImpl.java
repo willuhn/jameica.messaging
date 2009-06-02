@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.3 $
- * $Date: 2009/06/02 23:24:52 $
+ * $Revision: 1.4 $
+ * $Date: 2009/06/02 23:30:23 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -49,7 +49,7 @@ public class StorageServiceFileImpl implements StorageService
   private boolean started = false;
   
   // Maximal-Anzahl von Nachrichten pro Channel
-  private final static int MAX_MESSAGES = 10000;
+  private final static int MAX_MESSAGES = 100000;
 
   /**
    * @see de.willuhn.jameica.messaging.rmi.StorageService#get(de.willuhn.jameica.messaging.MessageData)
@@ -476,6 +476,9 @@ public class StorageServiceFileImpl implements StorageService
 
 /*********************************************************************
  * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.4  2009/06/02 23:30:23  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.3  2009/06/02 23:24:52  willuhn
  * @N Funktion, die eine Liste aller UUIDs in einem Channel liefert
  *
