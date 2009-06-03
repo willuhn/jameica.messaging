@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ArchiveFileSystem.java,v $
- * $Revision: 1.1 $
- * $Date: 2009/06/03 16:26:58 $
+ * $Revision: 1.2 $
+ * $Date: 2009/06/03 16:28:23 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -47,6 +47,9 @@ public class ArchiveFileSystem implements FileSystem
   {
     try
     {
+      // TODO URI auswerten. Sowohl fuer das Verzeichnis als auch fuer Remote-Support
+      // Zur Zeit kann das Modul nur innerhalb der JVM genutzt werden, was nicht
+      // so viel bringt.
       this.service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
     }
     catch (Exception e)
@@ -186,6 +189,9 @@ public class ArchiveFileSystem implements FileSystem
 
 /**********************************************************************
  * $Log: ArchiveFileSystem.java,v $
+ * Revision 1.2  2009/06/03 16:28:23  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.1  2009/06/03 16:26:58  willuhn
  * @N Anbindung an FS-API
  *
