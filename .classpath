@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/jameica.webadmin"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jameica.soap"/>
 	<classpathentry kind="lib" path="webapps/message/WEB-INF/lib/webdav-servlet-2.0.jar" sourcepath="lib.src/webdav-servlet-2.0-sources.jar"/>
+	<classpathentry kind="lib" path="lib/de_willuhn_fs.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
