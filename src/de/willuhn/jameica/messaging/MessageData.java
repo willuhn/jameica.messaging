@@ -11,16 +11,26 @@ import java.util.Map;
  */
 public class MessageData
 {
+  // Die typischsten Properties.
+  public static enum PROPERTY
+  {
+    filename,
+    filesize,
+    username,
+    created,
+    modified,
+  }
+  
   private InputStream inputStream           = null;
   private OutputStream outputStream         = null;
   private String uuid                       = null;
-  private Map properties                    = null;
+  private Map<String,String> properties     = null;
   
   /**
    * Liefert optionale Attribute fuer die Message.
    * @return optionale Attribute.
    */
-  public Map getProperties()
+  public Map<String,String> getProperties()
   {
     return properties;
   }
@@ -29,7 +39,7 @@ public class MessageData
    * Speichert optionale Attribute fuer die Message.
    * @param properties
    */
-  public void setProperties(Map properties)
+  public void setProperties(Map<String,String> properties)
   {
     this.properties = properties;
   }
@@ -93,6 +103,9 @@ public class MessageData
 
 /**********************************************************************
  * $Log: MessageData.java,v $
+ * Revision 1.3  2009/06/03 14:35:14  willuhn
+ * @N WebDAV-Connector (in progress)
+ *
  * Revision 1.2  2009/05/29 16:24:22  willuhn
  * *** empty log message ***
  *

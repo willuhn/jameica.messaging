@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.4 $
- * $Date: 2009/06/02 23:30:23 $
+ * $Revision: 1.5 $
+ * $Date: 2009/06/03 14:35:14 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -47,50 +48,52 @@ import de.willuhn.logging.Logger;
 public class StorageServiceFileImpl implements StorageService
 {
   private boolean started = false;
+  private final static boolean escape = true;
   
   // Maximal-Anzahl von Nachrichten pro Channel
   private final static int MAX_MESSAGES = 100000;
-
+  
   /**
    * @see de.willuhn.jameica.messaging.rmi.StorageService#get(de.willuhn.jameica.messaging.MessageData)
    */
   public synchronized void get(MessageData message) throws IOException
   {
-    if (!this.isStarted())
-      throw new IOException("service not started");
+    check();
     
     if (message == null)
       throw new IOException("no message given");
     
     OutputStream os = message.getOutputStream();
-    if (os == null)
-      throw new IOException("no output stream given");
 
     String uuid = message.getUuid();
     File f = find(uuid);
 
-    Logger.debug("reading message [UUID: " + uuid + "]");
 
     InputStream is = null;
     try
     {
-      is = new BufferedInputStream(new FileInputStream(f));
-      long started = System.currentTimeMillis();
-
-      byte[] buf = new byte[4096];
-      long count = 0;
-      int read   = 0;
-      while ((read = is.read(buf)) > -1)
+      // Wenn kein OutputStream angegeben ist, brauchen wir die Datei nicht lesen
+      if (os != null)
       {
-        if (read > 0) // Nur schreiben, wenn wirklich was gelesen wurde
-          os.write(buf,0,read);
-        count += read;
+        Logger.debug("reading message [UUID: " + uuid + "]");
+        is = new BufferedInputStream(new FileInputStream(f));
+        long started = System.currentTimeMillis();
+
+        byte[] buf = new byte[4096];
+        long count = 0;
+        int read   = 0;
+        while ((read = is.read(buf)) > -1)
+        {
+          if (read > 0) // Nur schreiben, wenn wirklich was gelesen wurde
+            os.write(buf,0,read);
+          count += read;
+        }
+        os.flush(); // Stellt sicher, dass alles geschrieben wurde, bevor wir den InputStream schliessen
+        Logger.info("message [UUID: " + uuid + " sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
       }
-      os.flush(); // Stellt sicher, dass alles geschrieben wurde, bevor wir den InputStream schliessen
       
       getProperties(message);
       
-      Logger.info("message [UUID: " + uuid + " sent (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
     }
     finally
     {
@@ -113,8 +116,7 @@ public class StorageServiceFileImpl implements StorageService
    */
   public void getProperties(MessageData message) throws IOException
   {
-    if (!this.isStarted())
-      throw new IOException("service not started");
+    check();
 
     if (message == null)
       throw new IOException("no message given");
@@ -134,7 +136,18 @@ public class StorageServiceFileImpl implements StorageService
       is = new BufferedInputStream(new FileInputStream(props));
       Properties p = new Properties();
       p.load(is);
+      
+      // Wir haengen immer noch die Dateiattribute als virtuelles Property dran
+      p.setProperty(MessageData.PROPERTY.filesize.toString(),Long.toString(f.length()));
+      p.setProperty(MessageData.PROPERTY.modified.toString(),Long.toString(f.lastModified()));
+      
+      // "created" basierend auf lastmodified erzeugen, falls es noch nicht existiert
+      String created = p.getProperty(MessageData.PROPERTY.created.toString());
+      if (created == null || created.length() == 0)
+        p.setProperty(MessageData.PROPERTY.created.toString(),p.getProperty(MessageData.PROPERTY.modified.toString()));
+
       message.setProperties((Map)p.clone());
+      
     }
     finally
     {
@@ -158,8 +171,7 @@ public class StorageServiceFileImpl implements StorageService
    */
   public synchronized String next(String channel) throws IOException
   {
-    if (!this.isStarted())
-      throw new IOException("service not started");
+    check();
 
     File dir = new File(getWorkdir().getAbsolutePath(),escape(channel));
     if (!dir.exists())
@@ -196,12 +208,11 @@ public class StorageServiceFileImpl implements StorageService
    */
   public synchronized String[] list(String channel) throws IOException
   {
-    if (!this.isStarted())
-      throw new IOException("service not started");
+    check();
 
     File dir = new File(getWorkdir().getAbsolutePath(),escape(channel));
     if (!dir.exists())
-      throw new IOException("channel does not exist");
+      return new String[0];
 
     File[] files = dir.listFiles(new FileFilter() {
       /**
@@ -209,7 +220,40 @@ public class StorageServiceFileImpl implements StorageService
        */
       public boolean accept(File pathname)
       {
-        return pathname.isFile() && pathname.canRead();
+        // Nur UUIDs als Dateinamen zulassen
+        return pathname.isFile() && pathname.canRead() && pathname.getName().indexOf(".") == -1;
+      }
+    });
+
+    String[] names = new String[files.length];
+    for (int i=0;i<files.length;++i)
+    {
+      names[i] = files[i].getName();
+    }
+    
+    //Alphabetisch sortieren
+    Arrays.sort(names);
+    return names;
+  }
+
+  /**
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#listChannels(java.lang.String)
+   */
+  public String[] listChannels(String channel) throws IOException
+  {
+    check();
+
+    File dir = new File(getWorkdir().getAbsolutePath(),escape(channel));
+    if (!dir.exists())
+      return null;
+
+    File[] files = dir.listFiles(new FileFilter() {
+      /**
+       * @see java.io.FileFilter#accept(java.io.File)
+       */
+      public boolean accept(File pathname)
+      {
+        return pathname.isDirectory() && pathname.canRead();
       }
     });
 
@@ -229,8 +273,7 @@ public class StorageServiceFileImpl implements StorageService
    */
   public synchronized void delete(MessageData message) throws IOException
   {
-    if (!this.isStarted())
-      throw new IOException("service not started");
+    check();
 
     if (message == null)
       throw new IOException("no message given");
@@ -271,8 +314,7 @@ public class StorageServiceFileImpl implements StorageService
    */
   public synchronized void put(String channel, MessageData message) throws IOException
   {
-    if (!this.isStarted())
-      throw new IOException("service not started");
+    check();
 
     if (message == null)
       throw new IOException("no message given");
@@ -292,9 +334,18 @@ public class StorageServiceFileImpl implements StorageService
 
     OutputStream os = null;
     OutputStream osProps = null;
+    boolean create = false;
     try
     {
-      String uuid = UUID.randomUUID().toString();
+      // Wenn die Message schon eine UUID hat, nehmen wir die und ueberschreiben
+      // die Daten. Ansonsten legen wir eine neue an.
+      String uuid = message.getUuid();
+      if (uuid == null || uuid.length() == 0)
+      {
+        uuid = UUID.randomUUID().toString();
+        create = true;
+      }
+      
       File target = new File(dir,uuid);
 
       os = new BufferedOutputStream(new FileOutputStream(target));
@@ -312,15 +363,22 @@ public class StorageServiceFileImpl implements StorageService
       os.flush();
       
       //////////////////////////////////////////////////////////////////////////
-      // Ggf. noch Properties speichern
+      // Properties speichern
       Map attributes = message.getProperties();
-      if (attributes != null && attributes.size() > 0)
-      {
-        osProps = new BufferedOutputStream(new FileOutputStream(new File(target.getAbsolutePath() + ".properties")));
-        Properties props = new Properties();
-        props.putAll(attributes);
-        props.store(osProps,uuid + " - " + new Date().toString());
-      }
+      if (attributes == null)
+        attributes = new HashMap<String,String>();
+
+      // Beim Neuanlegen den Zeitstempel der Erstellung hinzufuegen
+      if (create)
+        attributes.put(MessageData.PROPERTY.created.toString(),Long.toString(System.currentTimeMillis()));
+      
+      attributes.put(MessageData.PROPERTY.filesize.toString(),Long.toString(target.length()));
+
+      // Speichern
+      osProps = new BufferedOutputStream(new FileOutputStream(new File(target.getAbsolutePath() + ".properties")));
+      Properties props = new Properties();
+      props.putAll(attributes);
+      props.store(osProps,uuid + " - " + new Date().toString());
       //
       //////////////////////////////////////////////////////////////////////////
       
@@ -353,6 +411,27 @@ public class StorageServiceFileImpl implements StorageService
   }
   
   /**
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#create(java.lang.String)
+   */
+  public void create(String channel) throws IOException
+  {
+    channel = escape(channel);
+    File dir = new File(getWorkdir().getAbsolutePath(),channel);
+    if (!dir.exists() && !dir.mkdirs())
+      throw new IOException("unable to create channel " + channel);
+  }
+  
+  /**
+   * Prueft den Initialisierungs-Zustand des Storage-Services.
+   * @throws IOException
+   */
+  private void check() throws IOException
+  {
+    if (!this.isStarted())
+      throw new IOException("service not started");
+  }
+  
+  /**
    * Sucht eine Datei anhand der UUID.
    * @param uuid die UUID.
    * @return die Datei - niemals null.
@@ -382,8 +461,10 @@ public class StorageServiceFileImpl implements StorageService
     PluginResources res = Application.getPluginLoader().getPlugin(Plugin.class).getResources();
     Settings settings   = res.getSettings();
     File workdir = new File(settings.getString("workdir",res.getWorkPath() + File.separator + "archive"));
+
     if ((workdir.isDirectory() && workdir.canWrite()) || workdir.mkdirs())
       return workdir;
+    
     throw new IOException("unable to create workdir or not writable: " + workdir.getAbsolutePath());
   }
 
@@ -394,30 +475,33 @@ public class StorageServiceFileImpl implements StorageService
    */
   private String escape(String name)
   {
+    if (escape && name != null)
+    {
+      // Doppelpunkte gegen doppelte Unterstriche ersetzen
+      name = name.replaceAll("(:){1,}","__");
+
+      // Alle Leerzeichen gegen Unterstrich ersetzen
+      name = name.replaceAll(" ","_");
+
+      // Mehrfachpunkte gegen einzelne Punkte ersetzen
+      name = name.replaceAll("(\\.){2,}",".");
+
+      // Wir nehmen alle Zeichen bis auf Buchstaben, Zahlen, Punkt und Unterstrich raus 
+      name = name.replaceAll("[^A-Za-z0-9\\-_\\.]","");
+
+      // Unterstriche am Ende ersetzen wir
+      name = name.replaceAll("(_){1,}$","");
+
+      // Vorbereiten der Verzeichnisse
+      name = name.replaceAll("\\.",File.separator);
+
+      // und kuerzen noch auf maximal 255 Zeichen
+      if (name.length() > 255)
+        name = name.substring(0,254);
+    }
+
     if (name == null || name.length() == 0)
-      return "default";
-
-    // Doppelpunkte gegen doppelte Unterstriche ersetzen
-    name = name.replaceAll("(:){1,}","__");
-
-    // Alle Leerzeichen gegen Unterstrich ersetzen
-    name = name.replaceAll(" ","_");
-
-    // Mehrfachpunkte gegen einzelne Punkte ersetzen
-    name = name.replaceAll("(\\.){2,}",".");
-
-    // Wir nehmen alle Zeichen bis auf Buchstaben, Zahlen, Punkt und Unterstrich raus 
-    name = name.replaceAll("[^A-Za-z0-9\\-_\\.]","");
-
-    // Unterstriche am Ende ersetzen wir
-    name = name.replaceAll("(_){1,}$","");
-
-    // Vorbereiten der Verzeichnisse
-    name = name.replaceAll("\\.",File.separator);
-
-    // und kuerzen noch auf maximal 255 Zeichen
-    if (name.length() > 255)
-      name = name.substring(0,254);
+      return ".";
 
     return name;
   }
@@ -476,6 +560,9 @@ public class StorageServiceFileImpl implements StorageService
 
 /*********************************************************************
  * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.5  2009/06/03 14:35:14  willuhn
+ * @N WebDAV-Connector (in progress)
+ *
  * Revision 1.4  2009/06/02 23:30:23  willuhn
  * *** empty log message ***
  *

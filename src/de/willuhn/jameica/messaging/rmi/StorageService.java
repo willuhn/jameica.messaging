@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/StorageService.java,v $
- * $Revision: 1.2 $
- * $Date: 2009/06/02 23:24:52 $
+ * $Revision: 1.3 $
+ * $Date: 2009/06/03 14:35:14 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -53,6 +53,23 @@ public interface StorageService extends Service
    * @throws IOException
    */
   public String[] list(String channel) throws IOException;
+  
+  /**
+   * Liefert eine Liste der Sub-Channels in diesem Channel.
+   * @param channel Name des Channels. 
+   * @return Liste der Sub-Channels.
+   * @throws IOException
+   */
+  public String[] listChannels(String channel) throws IOException;
+
+  /**
+   * Legt explizit einen neuen Channel an.
+   * Der Aufruf der Funktion ist normalerweise nicht noetig,
+   * das Channels implizit existieren, wenn sie verwendet werden.
+   * @param channel Name des Channel.
+   * @throws IOException
+   */
+  public void create(String channel) throws IOException;
 
   /**
    * Loescht die Nachricht mit der angegebenen UUID.
@@ -75,6 +92,9 @@ public interface StorageService extends Service
 
 /*********************************************************************
  * $Log: StorageService.java,v $
+ * Revision 1.3  2009/06/03 14:35:14  willuhn
+ * @N WebDAV-Connector (in progress)
+ *
  * Revision 1.2  2009/06/02 23:24:52  willuhn
  * @N Funktion, die eine Liste aller UUIDs in einem Channel liefert
  *
