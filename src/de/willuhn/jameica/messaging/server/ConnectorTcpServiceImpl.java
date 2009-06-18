@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorTcpServiceImpl.java,v $
- * $Revision: 1.4 $
- * $Date: 2008/12/09 17:10:55 $
+ * $Revision: 1.5 $
+ * $Date: 2009/06/18 09:50:53 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -18,11 +18,16 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.RemoteException;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.Properties;
 
 import de.willuhn.jameica.messaging.LookupService;
 import de.willuhn.jameica.messaging.MessageData;
@@ -49,10 +54,12 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
    */
   public ConnectorTcpServiceImpl()
   {
-    this.commands.put("get",   new Get());
-    this.commands.put("put",   new Put());
-    this.commands.put("next",  new Next());
-    this.commands.put("delete",new Delete());
+    this.commands.put("get",     new Get());
+    this.commands.put("put",     new Put());
+    this.commands.put("next",    new Next());
+    this.commands.put("delete",  new Delete());
+    this.commands.put("putmeta", new PutMeta());
+    this.commands.put("getmeta", new GetMeta());
   }
 
   /**
@@ -338,6 +345,54 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
     }
   }
 
+  private class PutMeta implements Command
+  {
+    /**
+     * @see de.willuhn.jameica.messaging.server.ConnectorTcpServiceImpl.Command#exec(java.lang.String, java.io.InputStream, java.io.OutputStream)
+     */
+    public void exec(String data, InputStream is, OutputStream os) throws Exception
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+
+      MessageData message = new MessageData();
+      message.setUuid(data);
+
+      // Meta-Daten
+      Properties props = new Properties();
+      props.load(is);
+      Map<String,String> m = new HashMap<String,String>();
+      Enumeration e = props.keys();
+      while (e.hasMoreElements())
+      {
+        String key = (String) e.nextElement();
+        m.put(key,props.getProperty(key));
+      }
+      
+      message.setProperties(m);
+      service.setProperties(message);
+    }
+  }
+
+  private class GetMeta implements Command
+  {
+    /**
+     * @see de.willuhn.jameica.messaging.server.ConnectorTcpServiceImpl.Command#exec(java.lang.String, java.io.InputStream, java.io.OutputStream)
+     */
+    public void exec(String data, InputStream is, OutputStream os) throws Exception
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+
+      MessageData message = new MessageData();
+      message.setUuid(data);
+      service.getProperties(message);
+      
+      Properties props = new Properties();
+      props.putAll(message.getProperties());
+      props.list(new PrintStream(os));
+      props.store(os,null);
+    }
+  }
+
   private class Delete implements Command
   {
     /**
@@ -381,6 +436,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
 /**********************************************************************
  * $Log: ConnectorTcpServiceImpl.java,v $
+ * Revision 1.5  2009/06/18 09:50:53  willuhn
+ * @N zwei neue Kommandos (getmeta und putmeta) zum Lesen und Schreiben der Properties
+ *
  * Revision 1.4  2008/12/09 17:10:55  willuhn
  * @B falscher lookup name fuer tcp connector
  *

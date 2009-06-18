@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/StorageService.java,v $
- * $Revision: 1.3 $
- * $Date: 2009/06/03 14:35:14 $
+ * $Revision: 1.4 $
+ * $Date: 2009/06/18 09:50:53 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -37,6 +37,13 @@ public interface StorageService extends Service
    * @throws IOException
    */
   public void getProperties(MessageData message) throws IOException;
+
+  /**
+   * Speichert neue Properties zu einer Nachricht.
+   * @param message die Nachricht.
+   * @throws IOException
+   */
+  public void setProperties(MessageData message) throws IOException;
 
   /**
    * Liefert die UUID der naechsten Nachricht in diesem Channel oder null.
@@ -92,6 +99,9 @@ public interface StorageService extends Service
 
 /*********************************************************************
  * $Log: StorageService.java,v $
+ * Revision 1.4  2009/06/18 09:50:53  willuhn
+ * @N zwei neue Kommandos (getmeta und putmeta) zum Lesen und Schreiben der Properties
+ *
  * Revision 1.3  2009/06/03 14:35:14  willuhn
  * @N WebDAV-Connector (in progress)
  *

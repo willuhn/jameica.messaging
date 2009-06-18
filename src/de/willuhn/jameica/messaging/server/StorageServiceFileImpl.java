@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.5 $
- * $Date: 2009/06/03 14:35:14 $
+ * $Revision: 1.6 $
+ * $Date: 2009/06/18 09:50:53 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -165,6 +165,70 @@ public class StorageServiceFileImpl implements StorageService
     }
   }
 
+
+  /**
+   * @see de.willuhn.jameica.messaging.rmi.StorageService#setProperties(de.willuhn.jameica.messaging.MessageData)
+   */
+  public void setProperties(MessageData message) throws IOException
+  {
+    check();
+
+    if (message == null)
+      throw new IOException("no message given");
+    
+    String uuid = message.getUuid();
+    File f = find(uuid);
+
+    Logger.debug("adding message properties [UUID: " + uuid + "]");
+    InputStream is = null;
+    OutputStream os = null;
+    try
+    {
+      Properties p = new Properties();
+
+      // Existierende Properties einlesen, falls vorhanden
+      File props = new File(f.getAbsolutePath() + ".properties");
+      if (props.exists() && props.isFile() && props.canRead())
+      {
+        is = new BufferedInputStream(new FileInputStream(props));
+        p.load(is);
+      }
+
+      // Die neuen hinzufuegen
+      p.putAll(message.getProperties());
+      message.setProperties((Map)p.clone());
+      
+      // Speichern
+      os = new BufferedOutputStream(new FileOutputStream(props));
+      p.store(os,uuid + " - " + new Date().toString());
+      Logger.info("metadata updated [UUID: " + uuid + "]: " + p.size() + " properties");
+    }
+    finally
+    {
+      if (is != null)
+      {
+        try
+        {
+          is.close();
+        }
+        catch (Exception e)
+        {
+          Logger.error("error while closing input stream",e);
+        }
+      }
+      if (os != null)
+      {
+        try
+        {
+          os.close();
+        }
+        catch (Exception e)
+        {
+          Logger.error("error while closing output stream",e);
+        }
+      }
+    }
+  }
 
   /**
    * @see de.willuhn.jameica.messaging.rmi.StorageService#next(java.lang.String)
@@ -560,6 +624,9 @@ public class StorageServiceFileImpl implements StorageService
 
 /*********************************************************************
  * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.6  2009/06/18 09:50:53  willuhn
+ * @N zwei neue Kommandos (getmeta und putmeta) zum Lesen und Schreiben der Properties
+ *
  * Revision 1.5  2009/06/03 14:35:14  willuhn
  * @N WebDAV-Connector (in progress)
  *
