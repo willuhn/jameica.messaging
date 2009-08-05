@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rest/Commands.java,v $
- * $Revision: 1.7 $
- * $Date: 2009/06/02 22:59:48 $
+ * $Revision: 1.8 $
+ * $Date: 2009/08/05 09:03:32 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -24,9 +24,9 @@ import de.willuhn.jameica.messaging.MessageData;
 import de.willuhn.jameica.messaging.Plugin;
 import de.willuhn.jameica.messaging.rmi.StorageService;
 import de.willuhn.jameica.system.Application;
-import de.willuhn.jameica.webadmin.rest.annotation.Path;
-import de.willuhn.jameica.webadmin.rest.annotation.Request;
-import de.willuhn.jameica.webadmin.rest.annotation.Response;
+import de.willuhn.jameica.webadmin.annotation.Path;
+import de.willuhn.jameica.webadmin.annotation.Request;
+import de.willuhn.jameica.webadmin.annotation.Response;
 import de.willuhn.logging.Logger;
 
 /**
@@ -179,6 +179,9 @@ public class Commands
 
 /*********************************************************************
  * $Log: Commands.java,v $
+ * Revision 1.8  2009/08/05 09:03:32  willuhn
+ * @C Annotations in eigenes Package verschoben (sind nicht mehr REST-spezifisch)
+ *
  * Revision 1.7  2009/06/02 22:59:48  willuhn
  * @N Funktion zum Abrufen der Meta-Daten
  *
