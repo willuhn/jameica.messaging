@@ -27,6 +27,7 @@
     <service name="connector.rest"   depends="storage" autostart="true" class="de.willuhn.jameica.messaging.rmi.ConnectorRestService" />
     <service name="connector.soap"   depends="storage" autostart="true" class="de.willuhn.jameica.messaging.rmi.ConnectorSoapService" />
     <service name="connector.fs"     depends="storage" autostart="true" class="de.willuhn.jameica.messaging.rmi.ConnectorFsService" />
+    <service name="connector.msg"    depends="storage" autostart="true" class="de.willuhn.jameica.messaging.rmi.ConnectorMessagingService" />
   </services>
 </plugin>
 
