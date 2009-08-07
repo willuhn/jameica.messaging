@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.6 $
- * $Date: 2009/06/18 09:50:53 $
+ * $Revision: 1.7 $
+ * $Date: 2009/08/07 12:34:55 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -612,7 +612,7 @@ public class StorageServiceFileImpl implements StorageService
    */
   public void stop(boolean arg0) throws RemoteException
   {
-    if (this.isStarted())
+    if (!this.isStarted())
     {
       Logger.warn("service not started, skipping request");
       return;
@@ -624,6 +624,9 @@ public class StorageServiceFileImpl implements StorageService
 
 /*********************************************************************
  * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.7  2009/08/07 12:34:55  willuhn
+ * *** empty log message ***
+ *
  * Revision 1.6  2009/06/18 09:50:53  willuhn
  * @N zwei neue Kommandos (getmeta und putmeta) zum Lesen und Schreiben der Properties
  *
