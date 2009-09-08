@@ -9,7 +9,7 @@
   <homepage>http://www.willuhn.de/products/jameica/extensions.php#jameica.messaging</homepage>
   <license>GPL - http://www.gnu.org/copyleft/gpl.html</license>
 
-  <requires jameica="1.7+">
+  <requires jameica="1.8+">
     <import plugin="jameica.webadmin" version="1.1+" required="false"/>
     <import plugin="jameica.xmlrpc"   version="1.1+" required="false"/>
     <import plugin="jameica.soap"     version="1.0+" required="false"/>
