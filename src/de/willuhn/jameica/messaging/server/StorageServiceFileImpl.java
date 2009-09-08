@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.7 $
- * $Date: 2009/08/07 12:34:55 $
+ * $Revision: 1.8 $
+ * $Date: 2009/09/08 22:20:01 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -557,7 +557,11 @@ public class StorageServiceFileImpl implements StorageService
       name = name.replaceAll("(_){1,}$","");
 
       // Vorbereiten der Verzeichnisse
-      name = name.replaceAll("\\.",File.separator);
+      // Bewusst kein "File.separator", weil das unter Windows zu einer
+      // StringIndexOutOfBoundsException fuehren wuerde, da "\" im Replacement
+      // escaped werden muss. Siehe auch die Javadoc-Kommentare von String#replaceAll.
+      // Da Windows aber auch "/" als Verzeichnis-Trenner akzeptiert, nehmen wir die.
+      name = name.replaceAll("\\.","/");
 
       // und kuerzen noch auf maximal 255 Zeichen
       if (name.length() > 255)
@@ -624,6 +628,9 @@ public class StorageServiceFileImpl implements StorageService
 
 /*********************************************************************
  * $Log: StorageServiceFileImpl.java,v $
+ * Revision 1.8  2009/09/08 22:20:01  willuhn
+ * @B StringIndexOutOfBoundsException unter Windows
+ *
  * Revision 1.7  2009/08/07 12:34:55  willuhn
  * *** empty log message ***
  *
