@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorMessagingServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2009/08/06 17:06:07 $
+ * $Revision: 1.2 $
+ * $Date: 2009/09/29 15:29:19 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -15,6 +15,7 @@ package de.willuhn.jameica.messaging.server;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.Map;
 
@@ -147,16 +148,28 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
     {
       QueryMessage qm = (QueryMessage) message;
       Object data = qm.getData();
-      if (data == null || !(data instanceof byte[]))
+      if (data == null)
       {
-        Logger.error("message " + qm.getName() + " contains no byte[] data");
+        Logger.error("message " + qm.getName() + " contains no data");
         return;
       }
-
+      
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
 
       MessageData msg = new MessageData();
-      msg.setInputStream(new ByteArrayInputStream((byte[]) data));
+      
+      if (data instanceof byte[])
+      {
+        msg.setInputStream(new ByteArrayInputStream((byte[]) data));
+      }
+      else if (data instanceof InputStream)
+      {
+        msg.setInputStream((InputStream) data);
+      }
+      else
+      {
+        msg.setInputStream(new ByteArrayInputStream(data.toString().getBytes()));
+      }
       service.put(qm.getName(),msg);
       
       // Wir ersetzen die Nutzdaten gegen die erzeugte UUID.
@@ -409,6 +422,9 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
 
 /**********************************************************************
  * $Log: ConnectorMessagingServiceImpl.java,v $
+ * Revision 1.2  2009/09/29 15:29:19  willuhn
+ * @N auch InputStream akzeptieren
+ *
  * Revision 1.1  2009/08/06 17:06:07  willuhn
  * @N Connector, der Archiv-Nachrichten mittels Jameica-Messaging entgegennimmt. Auf diese Weise kann man bequem aus einem anderen Plugin Daten archivieren, ohne ueber TCP gehen zu muessen
  *
