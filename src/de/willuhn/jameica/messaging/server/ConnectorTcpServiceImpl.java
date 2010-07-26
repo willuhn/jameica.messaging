@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorTcpServiceImpl.java,v $
- * $Revision: 1.5 $
- * $Date: 2009/06/18 09:50:53 $
+ * $Revision: 1.6 $
+ * $Date: 2010/07/26 10:02:57 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -94,6 +94,16 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
     if (this.isStarted())
     {
       Logger.warn("service allready started, skipping request");
+      return;
+    }
+    
+    // Wir starten den Dienst nur, wenn Jameica im Server-Mode
+    // laeuft. Sonst wuerden wir unnoetig einen Port aufmachen,
+    // wenn das Messaging-Plugin auf ner Desktop-Installation
+    // laeuft.
+    if (!Application.inServerMode())
+    {
+      Logger.info("running not in server mode, skipping " + getName());
       return;
     }
     try
@@ -436,6 +446,10 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
 /**********************************************************************
  * $Log: ConnectorTcpServiceImpl.java,v $
+ * Revision 1.6  2010/07/26 10:02:57  willuhn
+ * @C TCP-Connector nur starten, wenn wir im Server-Mode laufen. Wir wuerden sonst unnoetig einen Port offen halten, wenn das Plugin auf einer Desktop-Instanz installiert ist
+ * @R WebDAV entfernt - funktionierte eh nicht
+ *
  * Revision 1.5  2009/06/18 09:50:53  willuhn
  * @N zwei neue Kommandos (getmeta und putmeta) zum Lesen und Schreiben der Properties
  *
