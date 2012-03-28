@@ -11,13 +11,34 @@ import java.util.Map;
  */
 public class MessageData
 {
-  // Die typischsten Properties.
+  /**
+   * Die typischsten Properties.
+   */
   public static enum PROPERTY
   {
+    /**
+     * Dateiname.
+     */
     filename,
+    
+    /**
+     * Dateigroesse.
+     */
     filesize,
+    
+    /**
+     * Benutzername.
+     */
     username,
+    
+    /**
+     * Erstellungszeitpunkt.
+     */
     created,
+    
+    /**
+     * Zeitpunkt der letzten Aenderung.
+     */
     modified,
   }
   
@@ -103,6 +124,9 @@ public class MessageData
 
 /**********************************************************************
  * $Log: MessageData.java,v $
+ * Revision 1.4  2012/03/28 22:25:14  willuhn
+ * @D javadoc Fixes
+ *
  * Revision 1.3  2009/06/03 14:35:14  willuhn
  * @N WebDAV-Connector (in progress)
  *
