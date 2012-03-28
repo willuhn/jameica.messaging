@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.10 $
- * $Date: 2008/12/09 16:50:03 $
+ * $Revision: 1.11 $
+ * $Date: 2012/03/28 22:28:19 $
  * $Author: willuhn $
  * $Locker:  $
  * $State: Exp $
@@ -20,7 +20,7 @@ import de.willuhn.jameica.messaging.MessageConsumer;
 import de.willuhn.jameica.messaging.QueryMessage;
 import de.willuhn.jameica.messaging.rest.Commands;
 import de.willuhn.jameica.messaging.rmi.ConnectorRestService;
-import de.willuhn.jameica.plugin.AbstractPlugin;
+import de.willuhn.jameica.plugin.Plugin;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.logging.Logger;
 
@@ -69,7 +69,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
     }
 
     // Wir checken, ob das Webadmin-Plugin verfuegbar ist
-    AbstractPlugin p = Application.getPluginLoader().getPlugin("de.willuhn.jameica.webadmin.Plugin");
+    Plugin p = Application.getPluginLoader().getPlugin("de.willuhn.jameica.webadmin.Plugin");
     if (p == null)
     {
       Logger.info("plugin jameica.webadmin not installed, skipping REST service");
@@ -144,6 +144,10 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
 
 /**********************************************************************
  * $Log: ConnectorRestServiceImpl.java,v $
+ * Revision 1.11  2012/03/28 22:28:19  willuhn
+ * @N Einfuehrung eines neuen Interfaces "Plugin", welches von "AbstractPlugin" implementiert wird. Es dient dazu, kuenftig auch Jameica-Plugins zu unterstuetzen, die selbst gar keinen eigenen Java-Code mitbringen sondern nur ein Manifest ("plugin.xml") und z.Bsp. Jars oder JS-Dateien. Plugin-Autoren muessen lediglich darauf achten, dass die Jameica-Funktionen, die bisher ein Object vom Typ "AbstractPlugin" zuruecklieferten, jetzt eines vom Typ "Plugin" liefern.
+ * @C "getClassloader()" verschoben von "plugin.getRessources().getClassloader()" zu "manifest.getClassloader()" - der Zugriffsweg ist kuerzer. Die alte Variante existiert weiterhin, ist jedoch als deprecated markiert.
+ *
  * Revision 1.10  2008/12/09 16:50:03  willuhn
  * @N Abhaengigkeiten optional deklariert
  *
