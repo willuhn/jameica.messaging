@@ -1,19 +1,17 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rest/Commands.java,v $
- * $Revision: 1.8 $
- * $Date: 2009/08/05 09:03:32 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
+ * Copyright (c) by Olaf Willuhn
  * All rights reserved
+ * GPLv2
  *
  **********************************************************************/
 
 package de.willuhn.jameica.messaging.rest;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -107,7 +105,15 @@ public class Commands
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
       MessageData data = new MessageData();
       data.setInputStream(request.getInputStream());
-      data.setProperties(request.getParameterMap());
+
+      Map<String,String> props = new HashMap<String,String>();
+      Enumeration<String> e = request.getParameterNames();
+      while (e.hasMoreElements())
+      {
+        String key = e.nextElement();
+        props.put(key,request.getParameter(key));
+      }
+      data.setProperties(props);
       service.put(channel,data);
       response.getWriter().print(data.getUuid());
     }
@@ -175,32 +181,3 @@ public class Commands
   }
 
 }
-
-
-/*********************************************************************
- * $Log: Commands.java,v $
- * Revision 1.8  2009/08/05 09:03:32  willuhn
- * @C Annotations in eigenes Package verschoben (sind nicht mehr REST-spezifisch)
- *
- * Revision 1.7  2009/06/02 22:59:48  willuhn
- * @N Funktion zum Abrufen der Meta-Daten
- *
- * Revision 1.6  2008/10/21 22:33:44  willuhn
- * @N Markieren der zu registrierenden REST-Kommandos via Annotation
- *
- * Revision 1.5  2008/10/08 22:05:52  willuhn
- * @N REST-Kommandos vervollstaendigt
- *
- * Revision 1.4  2008/10/08 21:38:38  willuhn
- * @C Nur noch zwei Annotations "Request" und "Response"
- *
- * Revision 1.3  2008/10/08 17:55:11  willuhn
- * @N SOAP-Connector (in progress)
- *
- * Revision 1.2  2008/10/08 16:01:40  willuhn
- * @N REST-Services via Injection (mittels Annotation) mit Context-Daten befuellen
- *
- * Revision 1.1  2008/10/07 23:45:41  willuhn
- * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
- *
- **********************************************************************/
