@@ -258,12 +258,33 @@ public class ArchiveFile implements File
     return this.msg;
   }
 
+  /**
+   * @see de.willuhn.io.fs.File#rename(java.lang.String)
+   */
+  @Override
+  public void rename(String newName) throws FSException
+  {
+    try
+    {
+      MessageData msg = this.getMessage();
+      Map<String,String> props = this.msg.getProperties();
+      if (props == null)
+      {
+        props = new HashMap<String,String>();
+        msg.setProperties(props);
+      }
+
+      props.put(MessageData.PROPERTY.filename.toString(),newName);
+      this.fs.getService().setProperties(msg);
+    }
+    catch (FSException e)
+    {
+      throw e;
+    }
+    catch (Exception e2)
+    {
+      throw new FSException(e2);
+    }
+  }
+
 }
-
-
-/**********************************************************************
- * $Log: ArchiveFile.java,v $
- * Revision 1.1  2009/06/03 16:26:58  willuhn
- * @N Anbindung an FS-API
- *
- **********************************************************************/
