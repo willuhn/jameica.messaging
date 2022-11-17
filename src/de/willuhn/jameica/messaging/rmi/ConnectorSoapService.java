@@ -1,13 +1,10 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/rmi/ConnectorSoapService.java,v $
- * $Revision: 1.3 $
- * $Date: 2009/06/02 22:34:44 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
- * All rights reserved
+ * Copyright (c) 2022 Olaf Willuhn
+ * All rights reserved.
+ * 
+ * This software is copyrighted work licensed under the terms of the
+ * Jameica License.  Please consult the file "LICENSE" for details. 
  *
  **********************************************************************/
 
@@ -44,6 +41,14 @@ public interface ConnectorSoapService extends Service
    * @throws RemoteException
    */
   public @WebResult(name="uuid") String next(@WebParam(name="channel") String channel) throws RemoteException;
+
+  /**
+   * Liefert die Liste der UUIDs aus dem Channel.
+   * @param channel Name des Channel.
+   * @return Liste der UUIDs oder NULL, wenn keine Nachrichten im Channel vorliegen.
+   * @throws RemoteException
+   */
+  public @WebResult(name="list") String[] list(@WebParam(name="channel") String channel) throws RemoteException;
   
   /**
    * Uebergibt eine Nachricht an die Queue.
@@ -75,21 +80,3 @@ public interface ConnectorSoapService extends Service
    */
   public @WebResult(name="properties") HashMap<String,String> getProperties(@WebParam(name="uuid") String uuid) throws RemoteException;
 }
-
-
-/*********************************************************************
- * $Log: ConnectorSoapService.java,v $
- * Revision 1.3  2009/06/02 22:34:44  willuhn
- * *** empty log message ***
- *
- * Revision 1.2  2009/05/29 16:24:22  willuhn
- * *** empty log message ***
- *
- * Revision 1.1  2008/10/08 23:18:38  willuhn
- * @B bugfixing
- * @N SoapTest
- *
- * Revision 1.1  2008/10/08 17:55:11  willuhn
- * @N SOAP-Connector (in progress)
- *
- **********************************************************************/

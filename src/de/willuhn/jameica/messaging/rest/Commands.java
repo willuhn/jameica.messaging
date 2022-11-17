@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.willuhn.jameica.messaging.MessageData;
@@ -151,6 +152,31 @@ public class Commands
     {
       Logger.error("unable to fetch next uuid from channel: " + channel,e2);
       throw new IOException("unable to fetch next uuid from channel: " + channel + " - " + e2.getMessage());
+    }
+  }
+
+  /**
+   * Liefert die Liste der UUIDs aus dem Channel.
+   * @param channel Channel.
+   * @throws IOException
+   */
+  @Path("/message/list/(.*)")
+  public void list(String channel) throws IOException
+  {
+    try
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      String[] uuids = service.list(channel);
+      response.getWriter().print(new JSONArray(uuids != null ? uuids : new String[0]).toString());
+    }
+    catch (IOException e)
+    {
+      throw e;
+    }
+    catch (Exception e2)
+    {
+      Logger.error("unable to fetch uuid list from channel: " + channel,e2);
+      throw new IOException("unable to fetch uuid list from channel: " + channel + " - " + e2.getMessage());
     }
   }
 

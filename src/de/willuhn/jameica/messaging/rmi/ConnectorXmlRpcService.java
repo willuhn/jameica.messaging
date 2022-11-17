@@ -39,7 +39,15 @@ public interface ConnectorXmlRpcService extends Service
    * @throws RemoteException
    */
   public String next(String channel) throws RemoteException;
-  
+
+  /**
+   * Liefert die Liste der UUIDs aus dem Channel.
+   * @param channel Name des Channel.
+   * @return Liste der UUIDs oder NULL, wenn keine Nachrichten im Channel vorliegen.
+   * @throws RemoteException
+   */
+  public String[] list(String channel) throws RemoteException;
+
   /**
    * Uebergibt eine Nachricht an die Queue.
    * @param channel Name des Channels. 

@@ -57,6 +57,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
     this.commands.put("get",     new Get());
     this.commands.put("put",     new Put());
     this.commands.put("next",    new Next());
+    this.commands.put("list",    new List());
     this.commands.put("delete",  new Delete());
     this.commands.put("putmeta", new PutMeta());
     this.commands.put("getmeta", new GetMeta());
@@ -441,59 +442,23 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
     }
   }
 
+  private class List implements Command
+  {
+    /**
+     * @see de.willuhn.jameica.messaging.server.ConnectorTcpServiceImpl.Command#exec(java.lang.String, java.io.InputStream, java.io.OutputStream)
+     */
+    public void exec(String data, InputStream is, OutputStream os) throws Exception
+    {
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+
+      String[] uuids = service.list(data);
+      
+      // UUIDs zurückliefern
+      if (uuids != null && uuids.length > 0)
+      {
+        os.write(String.join(",",uuids).getBytes());
+      }
+      os.write("\r\n".getBytes());
+    }
+  }
 }
-
-
-/**********************************************************************
- * $Log: ConnectorTcpServiceImpl.java,v $
- * Revision 1.6  2010/07/26 10:02:57  willuhn
- * @C TCP-Connector nur starten, wenn wir im Server-Mode laufen. Wir wuerden sonst unnoetig einen Port offen halten, wenn das Plugin auf einer Desktop-Instanz installiert ist
- * @R WebDAV entfernt - funktionierte eh nicht
- *
- * Revision 1.5  2009/06/18 09:50:53  willuhn
- * @N zwei neue Kommandos (getmeta und putmeta) zum Lesen und Schreiben der Properties
- *
- * Revision 1.4  2008/12/09 17:10:55  willuhn
- * @B falscher lookup name fuer tcp connector
- *
- * Revision 1.3  2008/10/08 17:55:11  willuhn
- * @N SOAP-Connector (in progress)
- *
- * Revision 1.2  2008/10/07 23:45:41  willuhn
- * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
- *
- * Revision 1.1  2008/10/07 23:03:34  willuhn
- * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
- *
- * Revision 1.10  2008/10/07 00:11:09  willuhn
- * *** empty log message ***
- *
- * Revision 1.9  2008/10/06 23:41:55  willuhn
- * @N Support fuer Properties in Messages
- *
- * Revision 1.8  2008/01/16 23:31:43  willuhn
- * *** empty log message ***
- *
- * Revision 1.7  2008/01/16 17:36:30  willuhn
- * @N Multicast-Lookup
- *
- * Revision 1.6  2008/01/16 16:44:47  willuhn
- * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
- * @N Doppel-Funktion des Systems als Archiv und Queue
- *
- * Revision 1.5  2007/12/14 12:04:08  willuhn
- * @C TCP-Listener verwendet jetzt Stream-API
- *
- * Revision 1.4  2007/12/14 09:56:59  willuhn
- * @N Channel-Angabe mit Punkt-Notation
- *
- * Revision 1.3  2007/12/14 00:13:54  willuhn
- * *** empty log message ***
- *
- * Revision 1.2  2007/12/14 00:02:43  willuhn
- * *** empty log message ***
- *
- * Revision 1.1  2007/12/13 23:31:38  willuhn
- * @N initial import
- *
- **********************************************************************/
