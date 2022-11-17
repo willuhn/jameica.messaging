@@ -1,13 +1,10 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorRestServiceImpl.java,v $
- * $Revision: 1.12 $
- * $Date: 2012/03/29 20:55:50 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
- * All rights reserved
+ * Copyright (c) 2022 Olaf Willuhn
+ * All rights reserved.
+ * 
+ * This software is copyrighted work licensed under the terms of the
+ * Jameica License.  Please consult the file "LICENSE" for details. 
  *
  **********************************************************************/
 
@@ -63,7 +60,7 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
   {
     if (this.isStarted())
     {
-      Logger.warn("service allready started, skipping request");
+      Logger.warn("service already started, skipping request");
       return;
     }
 
@@ -138,43 +135,3 @@ public class ConnectorRestServiceImpl implements ConnectorRestService
   }
 
 }
-
-
-/**********************************************************************
- * $Log: ConnectorRestServiceImpl.java,v $
- * Revision 1.12  2012/03/29 20:55:50  willuhn
- * @C Kompatibilitaet zu Jameica 2.2 wieder hergestellt
- *
- * Revision 1.11  2012/03/28 22:28:19  willuhn
- * @N Einfuehrung eines neuen Interfaces "Plugin", welches von "AbstractPlugin" implementiert wird. Es dient dazu, kuenftig auch Jameica-Plugins zu unterstuetzen, die selbst gar keinen eigenen Java-Code mitbringen sondern nur ein Manifest ("plugin.xml") und z.Bsp. Jars oder JS-Dateien. Plugin-Autoren muessen lediglich darauf achten, dass die Jameica-Funktionen, die bisher ein Object vom Typ "AbstractPlugin" zuruecklieferten, jetzt eines vom Typ "Plugin" liefern.
- * @C "getClassloader()" verschoben von "plugin.getRessources().getClassloader()" zu "manifest.getClassloader()" - der Zugriffsweg ist kuerzer. Die alte Variante existiert weiterhin, ist jedoch als deprecated markiert.
- *
- * Revision 1.10  2008/12/09 16:50:03  willuhn
- * @N Abhaengigkeiten optional deklariert
- *
- * Revision 1.9  2008/10/21 22:33:44  willuhn
- * @N Markieren der zu registrierenden REST-Kommandos via Annotation
- *
- * Revision 1.8  2008/10/08 23:26:52  willuhn
- * *** empty log message ***
- *
- * Revision 1.7  2008/10/08 23:18:39  willuhn
- * @B bugfixing
- * @N SoapTest
- *
- * Revision 1.6  2008/10/08 22:08:17  willuhn
- * *** empty log message ***
- *
- * Revision 1.4  2008/10/08 22:05:52  willuhn
- * @N REST-Kommandos vervollstaendigt
- *
- * Revision 1.3  2008/10/08 17:55:11  willuhn
- * @N SOAP-Connector (in progress)
- *
- * Revision 1.2  2008/10/08 16:01:40  willuhn
- * @N REST-Services via Injection (mittels Annotation) mit Context-Daten befuellen
- *
- * Revision 1.1  2008/10/07 23:45:41  willuhn
- * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
- *
- **********************************************************************/

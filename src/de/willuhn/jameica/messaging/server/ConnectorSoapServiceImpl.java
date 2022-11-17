@@ -1,16 +1,12 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorSoapServiceImpl.java,v $
- * $Revision: 1.4 $
- * $Date: 2009/06/02 22:34:44 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
- * All rights reserved
+ * Copyright (c) 2022 Olaf Willuhn
+ * All rights reserved.
+ * 
+ * This software is copyrighted work licensed under the terms of the
+ * Jameica License.  Please consult the file "LICENSE" for details. 
  *
  **********************************************************************/
-
 package de.willuhn.jameica.messaging.server;
 
 import java.rmi.RemoteException;
@@ -50,7 +46,7 @@ public class ConnectorSoapServiceImpl extends AbstractConnectorWebServiceImpl im
   {
     if(this.isStarted())
     {
-      Logger.warn("service allready started, skipping request");
+      Logger.warn("service already started, skipping request");
       return;
     }
     super.start();
@@ -93,21 +89,3 @@ public class ConnectorSoapServiceImpl extends AbstractConnectorWebServiceImpl im
   }
 
 }
-
-
-/**********************************************************************
- * $Log: ConnectorSoapServiceImpl.java,v $
- * Revision 1.4  2009/06/02 22:34:44  willuhn
- * *** empty log message ***
- *
- * Revision 1.3  2009/05/29 15:53:06  willuhn
- * @N Gemeinsame Basis-Klasse fuer Web-Connectoren
- *
- * Revision 1.2  2008/10/08 23:24:35  willuhn
- * *** empty log message ***
- *
- * Revision 1.1  2008/10/08 23:18:39  willuhn
- * @B bugfixing
- * @N SoapTest
- *
- **********************************************************************/

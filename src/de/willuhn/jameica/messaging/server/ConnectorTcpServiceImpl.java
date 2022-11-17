@@ -1,13 +1,10 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorTcpServiceImpl.java,v $
- * $Revision: 1.6 $
- * $Date: 2010/07/26 10:02:57 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
- * All rights reserved
+ * Copyright (c) 2022 Olaf Willuhn
+ * All rights reserved.
+ * 
+ * This software is copyrighted work licensed under the terms of the
+ * Jameica License.  Please consult the file "LICENSE" for details. 
  *
  **********************************************************************/
 
@@ -25,7 +22,6 @@ import java.net.Socket;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 
@@ -45,8 +41,9 @@ import de.willuhn.logging.Logger;
  */
 public class ConnectorTcpServiceImpl implements ConnectorTcpService
 {
+  private Settings settings = null;
   private Worker worker = null;
-  private Hashtable commands = new Hashtable();
+  private Map<String,Command> commands = new HashMap<>();
   
 
   /**
@@ -54,6 +51,8 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
    */
   public ConnectorTcpServiceImpl()
   {
+    this.settings = Application.getPluginLoader().getPlugin(Plugin.class).getResources().getSettings();
+
     this.commands.put("get",     new Get());
     this.commands.put("put",     new Put());
     this.commands.put("next",    new Next());
@@ -94,7 +93,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
   {
     if (this.isStarted())
     {
-      Logger.warn("service allready started, skipping request");
+      Logger.warn("service already started, skipping request");
       return;
     }
     
@@ -102,9 +101,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
     // laeuft. Sonst wuerden wir unnoetig einen Port aufmachen,
     // wenn das Messaging-Plugin auf ner Desktop-Installation
     // laeuft.
-    if (!Application.inServerMode())
+    if (!Application.inServerMode() && !settings.getBoolean("listener.tcp.start",false))
     {
-      Logger.info("running not in server mode, skipping " + getName());
+      Logger.info("service " + getName() + " disabled, skip tcp listener");
       return;
     }
     try
@@ -160,7 +159,6 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
     private Worker() throws Exception
     {
       super("tcp.connector for jameica.messaging");
-      Settings settings = Application.getPluginLoader().getPlugin(Plugin.class).getResources().getSettings();
 
       InetAddress address = null;
 
@@ -169,7 +167,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       if (host != null) address = InetAddress.getByName(host);
 
       // Port
-      int port = settings.getInt("listener.tcp.port",9000);
+      int port = settings.getInt("listener.tcp.port",9099);
 
       Logger.info("binding to " + (address != null ? address.getHostAddress() : "*") + ":" + port);
       this.server = new ServerSocket(port,-1,address);
@@ -274,7 +272,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
         String cmd  = command.substring(0,command.indexOf(' ')).toLowerCase();
         String data = command.substring(command.indexOf(' ')+1);
 
-        Command c = (Command) commands.get(cmd);
+        Command c = commands.get(cmd);
         if (c == null)
         {
           Logger.warn("unknown command: " + cmd);
@@ -432,11 +430,11 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       if (uuid != null)
       {
         // 2. Datei abrufen
-        Get get = (Get) commands.get("get");
+        Command get = commands.get("get");
         get.exec(uuid,is,os);
         
         // 3. Datei loeschen
-        Delete delete = (Delete) commands.get("delete");
+        Command delete = commands.get("delete");
         delete.exec(uuid,is,os);
       }
     }

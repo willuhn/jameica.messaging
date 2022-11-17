@@ -1,13 +1,10 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorMessagingServiceImpl.java,v $
- * $Revision: 1.2 $
- * $Date: 2009/09/29 15:29:19 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
- * All rights reserved
+ * Copyright (c) 2022 Olaf Willuhn
+ * All rights reserved.
+ * 
+ * This software is copyrighted work licensed under the terms of the
+ * Jameica License.  Please consult the file "LICENSE" for details. 
  *
  **********************************************************************/
 
@@ -75,7 +72,7 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
   {
     if (this.isStarted())
     {
-      Logger.warn("service allready started, skipping request");
+      Logger.warn("service already started, skipping request");
       return;
     }
 
@@ -418,14 +415,3 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
   }
 
 }
-
-
-/**********************************************************************
- * $Log: ConnectorMessagingServiceImpl.java,v $
- * Revision 1.2  2009/09/29 15:29:19  willuhn
- * @N auch InputStream akzeptieren
- *
- * Revision 1.1  2009/08/06 17:06:07  willuhn
- * @N Connector, der Archiv-Nachrichten mittels Jameica-Messaging entgegennimmt. Auf diese Weise kann man bequem aus einem anderen Plugin Daten archivieren, ohne ueber TCP gehen zu muessen
- *
- **********************************************************************/

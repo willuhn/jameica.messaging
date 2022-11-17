@@ -239,7 +239,7 @@ public abstract class AbstractConnectorWebServiceImpl implements Service
   {
     if(this.isStarted())
     {
-      Logger.warn("service allready started, skipping request");
+      Logger.warn("service already started, skipping request");
       return;
     }
     this.started = true;

@@ -1,13 +1,10 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/ConnectorFsServiceImpl.java,v $
- * $Revision: 1.1 $
- * $Date: 2009/06/03 16:26:58 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
- * All rights reserved
+ * Copyright (c) 2022 Olaf Willuhn
+ * All rights reserved.
+ * 
+ * This software is copyrighted work licensed under the terms of the
+ * Jameica License.  Please consult the file "LICENSE" for details. 
  *
  **********************************************************************/
 
@@ -57,7 +54,7 @@ public class ConnectorFsServiceImpl implements ConnectorFsService
   {
     if (this.isStarted())
     {
-      Logger.warn("service allready started, skipping request");
+      Logger.warn("service already started, skipping request");
       return;
     }
     FileSystemFactory.register(ArchiveFileSystem.PROTOCOL,ArchiveFileSystem.class);
@@ -79,11 +76,3 @@ public class ConnectorFsServiceImpl implements ConnectorFsService
   }
 
 }
-
-
-/**********************************************************************
- * $Log: ConnectorFsServiceImpl.java,v $
- * Revision 1.1  2009/06/03 16:26:58  willuhn
- * @N Anbindung an FS-API
- *
- **********************************************************************/

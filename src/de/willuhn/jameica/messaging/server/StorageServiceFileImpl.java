@@ -1,13 +1,10 @@
 /**********************************************************************
- * $Source: /cvsroot/jameica/jameica.messaging/src/de/willuhn/jameica/messaging/server/StorageServiceFileImpl.java,v $
- * $Revision: 1.8 $
- * $Date: 2009/09/08 22:20:01 $
- * $Author: willuhn $
- * $Locker:  $
- * $State: Exp $
  *
- * Copyright (c) by willuhn software & services
- * All rights reserved
+ * Copyright (c) 2022 Olaf Willuhn
+ * All rights reserved.
+ * 
+ * This software is copyrighted work licensed under the terms of the
+ * Jameica License.  Please consult the file "LICENSE" for details. 
  *
  **********************************************************************/
 
@@ -605,7 +602,7 @@ public class StorageServiceFileImpl implements StorageService
   {
     if (this.isStarted())
     {
-      Logger.warn("service allready started, skipping request");
+      Logger.warn("service already started, skipping request");
       return;
     }
     this.started = true;
@@ -624,57 +621,3 @@ public class StorageServiceFileImpl implements StorageService
     this.started = false;
   }
 }
-
-
-/*********************************************************************
- * $Log: StorageServiceFileImpl.java,v $
- * Revision 1.8  2009/09/08 22:20:01  willuhn
- * @B StringIndexOutOfBoundsException unter Windows
- *
- * Revision 1.7  2009/08/07 12:34:55  willuhn
- * *** empty log message ***
- *
- * Revision 1.6  2009/06/18 09:50:53  willuhn
- * @N zwei neue Kommandos (getmeta und putmeta) zum Lesen und Schreiben der Properties
- *
- * Revision 1.5  2009/06/03 14:35:14  willuhn
- * @N WebDAV-Connector (in progress)
- *
- * Revision 1.4  2009/06/02 23:30:23  willuhn
- * *** empty log message ***
- *
- * Revision 1.3  2009/06/02 23:24:52  willuhn
- * @N Funktion, die eine Liste aller UUIDs in einem Channel liefert
- *
- * Revision 1.2  2008/10/07 23:45:41  willuhn
- * @N Connector fuer Zugriff via HTTP-REST - noch in Arbeit
- *
- * Revision 1.1  2008/10/07 23:03:34  willuhn
- * @C "queue" und "archive" entfernt. Zugriff jetzt direkt ueber Connectoren
- *
- * Revision 1.8  2008/10/06 23:30:45  willuhn
- * @N Support fuer Properties in Messages
- *
- * Revision 1.7  2008/01/17 09:54:48  willuhn
- * @B falsches workdir
- *
- * Revision 1.6  2008/01/17 09:52:28  willuhn
- * @B doppeltes Lesen der Bytes
- *
- * Revision 1.5  2008/01/17 09:48:37  willuhn
- * *** empty log message ***
- *
- * Revision 1.4  2008/01/16 23:31:43  willuhn
- * *** empty log message ***
- *
- * Revision 1.3  2008/01/16 16:44:47  willuhn
- * @N Verwendung von UUIDs fuer die Vergabe der Dateinamen
- * @N Doppel-Funktion des Systems als Archiv und Queue
- *
- * Revision 1.2  2007/12/14 12:04:08  willuhn
- * @C TCP-Listener verwendet jetzt Stream-API
- *
- * Revision 1.1  2007/12/14 11:28:08  willuhn
- * @N Storage-Engine
- *
- **********************************************************************/
