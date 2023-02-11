@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.rmi.RemoteException;
+import java.util.Arrays;
 import java.util.Map;
 
 import de.willuhn.jameica.messaging.Message;
@@ -36,6 +37,7 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
   private Put put   = null;
   private Get get   = null;
   private Del del   = null;
+  private List list = null;
   private GetMeta getmeta = null;
   private PutMeta putmeta = null;
 
@@ -84,6 +86,9 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
 
     this.del = new Del();
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.del").registerMessageConsumer(this.del);
+    
+    this.list = new List(); 
+    Application.getMessagingFactory().getMessagingQueue("jameica.messaging.list").registerMessageConsumer(this.list);
 
     this.putmeta = new PutMeta();
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.putmeta").registerMessageConsumer(this.putmeta);
@@ -111,6 +116,7 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.get").unRegisterMessageConsumer(this.get);
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.put").unRegisterMessageConsumer(this.put);
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.del").unRegisterMessageConsumer(this.del);
+    Application.getMessagingFactory().getMessagingQueue("jameica.messaging.list").unRegisterMessageConsumer(this.list);
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.putmeta").unRegisterMessageConsumer(this.putmeta);
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.getmeta").unRegisterMessageConsumer(this.getmeta);
     Application.getMessagingFactory().getMessagingQueue("jameica.messaging.next").unRegisterMessageConsumer(this.next);
@@ -269,6 +275,43 @@ public class ConnectorMessagingServiceImpl implements ConnectorMessagingService
       service.delete(msg);
     }
     
+  }
+  
+  private class List implements MessageConsumer
+  {
+    /**
+     * @see de.willuhn.jameica.messaging.MessageConsumer#autoRegister()
+     */
+    public boolean autoRegister()
+    {
+      return false;
+    }
+
+    /**
+     * @see de.willuhn.jameica.messaging.MessageConsumer#getExpectedMessageTypes()
+     */
+    public Class[] getExpectedMessageTypes()
+    {
+      return new Class[]{QueryMessage.class};
+    }
+
+    /**
+     * @see de.willuhn.jameica.messaging.MessageConsumer#handleMessage(de.willuhn.jameica.messaging.Message)
+     */
+    public void handleMessage(Message message) throws Exception
+    {
+      QueryMessage qm = (QueryMessage) message;
+      String channel = qm.getName();
+
+      if (channel == null || channel.length() == 0)
+      {
+        Logger.error("message contains no channel");
+        return;
+      }
+
+      StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
+      qm.setData(Arrays.asList(service.list(channel)));
+    }
   }
 
 
