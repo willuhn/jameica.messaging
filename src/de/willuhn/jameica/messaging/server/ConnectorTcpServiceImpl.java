@@ -41,6 +41,8 @@ import de.willuhn.logging.Logger;
  */
 public class ConnectorTcpServiceImpl implements ConnectorTcpService
 {
+  static final long MAX_PUT_BYTES = 64L * 1024L * 1024L;
+
   private Settings settings = null;
   private Worker worker = null;
   private Map<String,Command> commands = new HashMap<>();
@@ -97,15 +99,14 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       return;
     }
     
-    // Wir starten den Dienst nur, wenn Jameica im Server-Mode
-    // laeuft. Sonst wuerden wir unnoetig einen Port aufmachen,
-    // wenn das Messaging-Plugin auf ner Desktop-Installation
-    // laeuft.
-    if (!Application.inServerMode() && !settings.getBoolean("listener.tcp.start",false))
+    // Der Legacy-Listener muss auch im Server-Mode explizit aktiviert werden.
+    // Er besitzt weder Transportverschluesselung noch Client-Authentifizierung.
+    if (!isLegacyListenerEnabled(settings.getBoolean("listener.tcp.start",false)))
     {
-      Logger.info("service " + getName() + " disabled, skip tcp listener");
+      Logger.info("service " + getName() + " disabled, set listener.tcp.start=true to enable the legacy tcp listener explicitly");
       return;
     }
+    Logger.warn("starting explicitly enabled legacy tcp listener without transport encryption or client authentication");
     try
     {
       this.worker = new Worker();
@@ -116,6 +117,16 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       Logger.error("unable to start tcp listener",e);
       this.worker = null;
     }
+  }
+
+  /**
+   * Keeps the listener opt-in policy independently testable.
+   * @param configured explicit listener setting.
+   * @return true only for explicit opt-in.
+   */
+  static boolean isLegacyListenerEnabled(boolean configured)
+  {
+    return configured;
   }
   
   /**
@@ -186,6 +197,15 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       this.running = false;
       try
       {
+        if (this.server != null)
+          this.server.close();
+      }
+      catch (Exception e)
+      {
+        Logger.error("unable to close tcp listener",e);
+      }
+      try
+      {
         LookupService.unRegister("tcp:" + Plugin.class.getName() + "." + ConnectorTcpServiceImpl.this.getName());
       }
       catch (Exception e)
@@ -218,7 +238,9 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
       }
       catch (Exception e)
       {
-        if (!(e instanceof InterruptedException))
+        boolean unexpected = this.running && !(e instanceof InterruptedException);
+        this.running = false;
+        if (unexpected)
         {
           // Huh? Das kommt unerwartet
           Logger.error("tcp listener stopped abnormally",e);
@@ -345,7 +367,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
     {
       StorageService service = (StorageService) Application.getServiceFactory().lookup(Plugin.class,"storage");
       MessageData message = new MessageData();
-      message.setInputStream(is);
+      message.setInputStream(new BoundedInputStream(is,MAX_PUT_BYTES));
       service.put(data,message);
 
       // Erzeugte UUID zurueckliefern
@@ -368,7 +390,7 @@ public class ConnectorTcpServiceImpl implements ConnectorTcpService
 
       // Meta-Daten
       Properties props = new Properties();
-      props.load(is);
+      props.load(new BoundedInputStream(is,StorageServiceFileImpl.MAX_METADATA_BYTES));
       Map<String,String> m = new HashMap<String,String>();
       Enumeration e = props.keys();
       while (e.hasMoreElements())
