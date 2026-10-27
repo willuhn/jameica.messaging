@@ -12,6 +12,8 @@ package de.willuhn.jameica.messaging.server;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -19,6 +21,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import de.willuhn.io.FileFinder;
 import de.willuhn.jameica.messaging.MessageData;
@@ -44,6 +50,10 @@ import de.willuhn.logging.Logger;
  */
 public class StorageServiceFileImpl implements StorageService
 {
+  private static final Pattern UUID_PATTERN = Pattern.compile("[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}");
+  static final long MAX_METADATA_BYTES = 1024L * 1024L;
+  private static final int MAX_METADATA_ENTRIES = 10000;
+
   private boolean started = false;
   private final static boolean escape = true;
   
@@ -130,7 +140,7 @@ public class StorageServiceFileImpl implements StorageService
       if (!props.exists() || !props.isFile() || !props.canRead())
         return; // Keine Properties vorhanden
 
-      is = new BufferedInputStream(new FileInputStream(props));
+      is = new BoundedInputStream(new BufferedInputStream(new FileInputStream(props)),MAX_METADATA_BYTES);
       Properties p = new Properties();
       p.load(is);
       
@@ -177,54 +187,26 @@ public class StorageServiceFileImpl implements StorageService
     File f = find(uuid);
 
     Logger.debug("adding message properties [UUID: " + uuid + "]");
-    InputStream is = null;
-    OutputStream os = null;
-    try
-    {
-      Properties p = new Properties();
+    Properties p = new Properties();
 
-      // Existierende Properties einlesen, falls vorhanden
-      File props = new File(f.getAbsolutePath() + ".properties");
-      if (props.exists() && props.isFile() && props.canRead())
-      {
-        is = new BufferedInputStream(new FileInputStream(props));
-        p.load(is);
-      }
-
-      // Die neuen hinzufuegen
-      p.putAll(message.getProperties());
-      message.setProperties((Map)p.clone());
-      
-      // Speichern
-      os = new BufferedOutputStream(new FileOutputStream(props));
-      p.store(os,uuid + " - " + new Date().toString());
-      Logger.info("metadata updated [UUID: " + uuid + "]: " + p.size() + " properties");
-    }
-    finally
+    // Existierende Properties einlesen, falls vorhanden
+    File props = new File(f.getAbsolutePath() + ".properties");
+    if (props.exists() && props.isFile() && props.canRead())
     {
-      if (is != null)
+      try (InputStream input = new BoundedInputStream(new BufferedInputStream(new FileInputStream(props)),MAX_METADATA_BYTES))
       {
-        try
-        {
-          is.close();
-        }
-        catch (Exception e)
-        {
-          Logger.error("error while closing input stream",e);
-        }
-      }
-      if (os != null)
-      {
-        try
-        {
-          os.close();
-        }
-        catch (Exception e)
-        {
-          Logger.error("error while closing output stream",e);
-        }
+        p.load(input);
       }
     }
+
+    // Die neuen hinzufuegen
+    p.putAll(message.getProperties());
+    byte[] encoded = encodeProperties(p,uuid + " - " + new Date().toString());
+
+    // Erst eine vollstaendige, begrenzte Datei schreiben und dann ersetzen.
+    replaceFromStream(props,new ByteArrayInputStream(encoded));
+    message.setProperties((Map)p.clone());
+    Logger.info("metadata updated [UUID: " + uuid + "]: " + p.size() + " properties");
   }
 
   /**
@@ -393,82 +375,47 @@ public class StorageServiceFileImpl implements StorageService
     if (size != null && size.length >= MAX_MESSAGES)
       throw new IOException("message limit (" + + MAX_MESSAGES + " exceeded for channel " + channel);
 
-    OutputStream os = null;
-    OutputStream osProps = null;
     boolean create = false;
-    try
+    // Wenn die Message schon eine UUID hat, nehmen wir die und ueberschreiben
+    // die Daten. Ansonsten legen wir eine neue an.
+    String uuid = message.getUuid();
+    if (uuid == null || uuid.length() == 0)
     {
-      // Wenn die Message schon eine UUID hat, nehmen wir die und ueberschreiben
-      // die Daten. Ansonsten legen wir eine neue an.
-      String uuid = message.getUuid();
-      if (uuid == null || uuid.length() == 0)
-      {
-        uuid = UUID.randomUUID().toString();
-        create = true;
-      }
+      uuid = UUID.randomUUID().toString();
+      create = true;
+    }
+    else
+    {
+      uuid = validateUuid(uuid);
+    }
       
-      File target = new File(dir,uuid);
+    File target = new File(dir,uuid);
 
-      os = new BufferedOutputStream(new FileOutputStream(target));
-      long started = System.currentTimeMillis();
-
-      byte[] buf = new byte[4096];
-      long count = 0;
-      int read   = 0;
-      while ((read = is.read(buf)) != -1)
-      {
-        if (read > 0)
-          os.write(buf,0,read);
-        count += read;
-      }
-      os.flush();
+    long started = System.currentTimeMillis();
+    long count = replaceFromStream(target,is);
       
       //////////////////////////////////////////////////////////////////////////
       // Properties speichern
-      Map attributes = message.getProperties();
-      if (attributes == null)
-        attributes = new HashMap<String,String>();
+    Map attributes = message.getProperties();
+    if (attributes == null)
+      attributes = new HashMap<String,String>();
 
       // Beim Neuanlegen den Zeitstempel der Erstellung hinzufuegen
-      if (create)
-        attributes.put(MessageData.PROPERTY.created.toString(),Long.toString(System.currentTimeMillis()));
+    if (create)
+      attributes.put(MessageData.PROPERTY.created.toString(),Long.toString(System.currentTimeMillis()));
       
-      attributes.put(MessageData.PROPERTY.filesize.toString(),Long.toString(target.length()));
+    attributes.put(MessageData.PROPERTY.filesize.toString(),Long.toString(target.length()));
 
       // Speichern
-      osProps = new BufferedOutputStream(new FileOutputStream(new File(target.getAbsolutePath() + ".properties")));
-      Properties props = new Properties();
-      props.putAll(attributes);
-      props.store(osProps,uuid + " - " + new Date().toString());
+    Properties props = new Properties();
+    props.putAll(attributes);
+    byte[] encoded = encodeProperties(props,uuid + " - " + new Date().toString());
+    replaceFromStream(new File(target.getAbsolutePath() + ".properties"),new ByteArrayInputStream(encoded));
       //
       //////////////////////////////////////////////////////////////////////////
       
-      Logger.info("[channel: " + channel + "] message received [UUID: " + uuid + "] (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
-      message.setUuid(uuid);
-    }
-    finally
-    {
-      if (os != null)
-      {
-        try
-        {
-          os.close();
-        } catch (Exception e)
-        {
-          Logger.error("error while closing file",e);
-        }
-      }
-      if (osProps != null)
-      {
-        try
-        {
-          osProps.close();
-        } catch (Exception e)
-        {
-          Logger.error("error while closing properties",e);
-        }
-      }
-    }
+    Logger.info("[channel: " + channel + "] message received [UUID: " + uuid + "] (" + count + " bytes in " + (System.currentTimeMillis() - started) + " ms)");
+    message.setUuid(uuid);
   }
   
   /**
@@ -500,15 +447,87 @@ public class StorageServiceFileImpl implements StorageService
    */
   private File find(String uuid) throws IOException
   {
-    if (uuid == null || uuid.length() == 0)
-      throw new IOException("no UUID given");
+    uuid = validateUuid(uuid);
 
     FileFinder finder = new FileFinder(getWorkdir());
-    finder.matches("^" + uuid + "$");
+    finder.matches("^" + Pattern.quote(uuid) + "$");
     File[] result = finder.findRecursive();
     if (result == null || result.length == 0)
       throw new IOException("message not found [UUID: " + uuid + "]");
     return result[0];
+  }
+
+  /**
+   * Accepts only canonical UUIDs generated by this storage service.
+   * @param uuid candidate identifier.
+   * @return the validated identifier.
+   * @throws IOException if the value is not a canonical UUID.
+   */
+  static String validateUuid(String uuid) throws IOException
+  {
+    if (uuid == null || !UUID_PATTERN.matcher(uuid).matches())
+      throw new IOException("invalid UUID");
+    return uuid;
+  }
+
+  /** Serializes bounded aggregate metadata. */
+  static byte[] encodeProperties(Properties properties, String comment) throws IOException
+  {
+    if (properties.size() > MAX_METADATA_ENTRIES)
+      throw new IOException("too many metadata entries");
+
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    BoundedOutputStream bounded = new BoundedOutputStream(bytes,MAX_METADATA_BYTES);
+    properties.store(bounded,comment);
+    bounded.flush();
+    return bytes.toByteArray();
+  }
+
+  /**
+   * Replaces a file only after the complete input has been written to a
+   * sibling temporary file.
+   */
+  static long replaceFromStream(File target, InputStream input) throws IOException
+  {
+    File directory = target.getAbsoluteFile().getParentFile();
+    if (directory == null)
+      throw new IOException("target has no parent directory");
+
+    File temporary = File.createTempFile("." + target.getName() + ".",".tmp",directory);
+    boolean replaced = false;
+    long count = 0;
+    try
+    {
+      try (OutputStream output = new BufferedOutputStream(new FileOutputStream(temporary)))
+      {
+        byte[] buffer = new byte[4096];
+        int read;
+        while ((read = input.read(buffer)) != -1)
+        {
+          if (read > 0)
+          {
+            output.write(buffer,0,read);
+            count += read;
+          }
+        }
+      }
+
+      try
+      {
+        Files.move(temporary.toPath(),target.toPath(),StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);
+      }
+      catch (AtomicMoveNotSupportedException e)
+      {
+        Files.move(temporary.toPath(),target.toPath(),StandardCopyOption.REPLACE_EXISTING);
+      }
+      replaced = true;
+      return count;
+    }
+    finally
+    {
+      if (!replaced && temporary.exists() && !temporary.delete())
+        Logger.warn("unable to remove incomplete temporary file " + temporary.getAbsolutePath());
+    }
   }
   
   
